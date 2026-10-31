@@ -21,7 +21,11 @@
     border-color var(--dur-fast) var(--ease-out);
   min-height: 44px; /* touch-friendly */
   text-decoration: none;
-  white-space: nowrap;
+  /* Long Arabic labels wrap on narrow phones instead of pushing the layout
+     (or the page) into a horizontal scroll. */
+  max-width: 100%;
+  text-align: center;
+  white-space: normal;
 }
 .btn:hover {
   transform: translateY(-2px);

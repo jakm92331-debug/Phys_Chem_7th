@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   CheckCircle2,
   Crosshair,
@@ -16,13 +16,14 @@ import type { LabMission } from '@/types/content'
 import {
   checkPrediction,
   describeRelativeMotion,
-  formatMeasure,
   predictPosition,
   relativeVelocity,
 } from '@/lib/motion'
+import { formatQuantity, UNITS } from '@/lib/units'
 import { useProgress } from '@/state/progress'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { ActionButton } from '@/components/ui/ui'
+import { Measure, RichText, Tex } from '@/components/math/Math'
 import './MotionLab.css'
 
 /**
@@ -80,6 +81,11 @@ const freshSim = (): Sim => ({
   cameraX: -14,
 })
 
+/** Rounds to at most one decimal, for inline LaTeX substitutions. */
+function round(value: number): number {
+  return Math.round(value * 10) / 10
+}
+
 /** Deterministic pseudo-random from an integer seed (stable scenery). */
 function seeded(n: number): number {
   const x = Math.sin(n * 127.1 + 311.7) * 43758.5453
@@ -113,7 +119,7 @@ export function MotionLab({
   const [predictDt, setPredictDt] = useState(4)
   const [guess, setGuess] = useState<number | null>(null)
   const [guessInput, setGuessInput] = useState('')
-  const [predictMsg, setPredictMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [predictMsg, setPredictMsg] = useState<{ ok: boolean; text: ReactNode } | null>(null)
 
   // Mission tracking refs
   const speedsTried = useRef<Set<number>>(new Set())
@@ -288,7 +294,8 @@ export function MotionLab({
       ctx.stroke()
       ctx.fillStyle = '#0F1B33'
       ctx.strokeStyle = 'rgba(125,211,252,0.9)'
-      const label = `${m} م`
+      // Units on the canvas are English SI symbols too (m).
+      const label = formatQuantity(m, UNITS.metre, 0)
       ctx.font = '700 11px "Readex Pro", sans-serif'
       const tw = ctx.measureText(label).width + 12
       ctx.beginPath()
@@ -451,7 +458,11 @@ export function MotionLab({
         ctx.closePath()
         ctx.fill()
         ctx.font = '700 10px "Readex Pro", sans-serif'
-        ctx.fillText(`${Math.abs(speedForArrow)} م/ث`, ax + dir * (len / 2), ay - 7)
+        ctx.fillText(
+          formatQuantity(Math.abs(speedForArrow), UNITS.metresPerSecond, 0),
+          ax + dir * (len / 2),
+          ay - 7,
+        )
       }
     }
 
@@ -558,8 +569,9 @@ export function MotionLab({
     ctx.fillStyle = '#A9B6D8'
     ctx.textAlign = 'right'
     ctx.font = '700 10px "Readex Pro", sans-serif'
-    ctx.fillText('المسافة من البداية (م)', padL + 118, padT + 4)
-    ctx.fillText('الزمن (ث)', W - padR, H - 8)
+    // Axis names stay Arabic; the variable and its unit symbol are English.
+    ctx.fillText('المسافة من البداية  d (m)', padL + 132, padT + 4)
+    ctx.fillText('الزمن  t (s)', W - padR, H - 8)
   }, [])
 
   /* ------------------------------------------------ lifecycle */
@@ -691,20 +703,43 @@ export function MotionLab({
     const sim = simRef.current
     const g = guessInput.trim() === '' ? guess : Number(guessInput)
     if (g === null || g === undefined || Number.isNaN(g)) {
-      setPredictMsg({ ok: false, text: 'حدّد موضعاً أولاً: اضغط على المسار أو أدخل رقماً بالأمتار.' })
+      setPredictMsg({
+        ok: false,
+        text: (
+          <>
+            حدّد موضعاً أولاً: اضغط على المسار أو أدخل رقماً — المسافة بوحدة{' '}
+            <span className="unit">m</span>.
+          </>
+        ),
+      })
       return
     }
     if (vRed === 0) {
-      setPredictMsg({ ok: false, text: 'سرعة السيارة الحمراء صفر! ارفع سرعتها من المنزلق ثم حاول مجدداً.' })
+      setPredictMsg({
+        ok: false,
+        text: 'سرعة السيارة الحمراء صفر! ارفع سرعتها من المنزلق ثم حاول مجدداً.',
+      })
       return
     }
     const actual = predictPosition(sim.xRed, vRed, predictDt)
     const { correct, error } = checkPrediction(g, actual, vRed)
+    // The substitution is shown as maths (KaTeX) with English unit symbols.
+    const substitution = (
+      <Tex
+        tex={`x_2 = x_1 + v\\,\\Delta t = ${round(sim.xRed)}\\,\\mathrm{m} + ${round(vRed)}\\,\\mathrm{m/s} \\times ${round(predictDt)}\\,\\mathrm{s} = ${round(actual)}\\,\\mathrm{m}`}
+        label="الموضع الجديد = الموضع الحالي + السرعة × الزمن"
+      />
+    )
     if (correct) {
       fireMission('motion-prediction')
       setPredictMsg({
         ok: true,
-        text: `تنبّؤ صحيح! الموضع الحقيقي نحو ${formatMeasure(actual)} م من البداية (خطأك ${formatMeasure(error)} م فقط). شاهد السيارة تصل إليه الآن.`,
+        text: (
+          <>
+            تنبّؤ صحيح! الموضع الحقيقي نحو <Measure value={actual} unit="metre" /> من البداية (خطأك{' '}
+            <Measure value={error} unit="metre" /> فقط). شاهد السيارة تصل إليه الآن. {substitution}
+          </>
+        ),
       })
       advance(predictDt)
       const s2 = simRef.current
@@ -719,7 +754,15 @@ export function MotionLab({
     } else {
       setPredictMsg({
         ok: false,
-        text: `ليس بعد — أنت بعيد بمقدار ${formatMeasure(error)} م. تذكّر: الموضع الجديد = الموضع الحالي (${formatMeasure(sim.xRed)} م) + السرعة (${vRed} م/ث) × الزمن (${predictDt} ث). حاول مجدداً!`,
+        text: (
+          <>
+            ليس بعد — أنت بعيد بمقدار <Measure value={error} unit="metre" />. تذكّر العلاقة{' '}
+            <Tex tex="x_2 = x_1 + v\,\Delta t" /> حيث الموضع الحالي{' '}
+            <Measure value={sim.xRed} unit="metre" /> والسرعة{' '}
+            <Measure value={vRed} unit="metresPerSecond" digits={0} /> والزمن{' '}
+            <Measure value={predictDt} unit="second" digits={0} />. حاول مجدداً!
+          </>
+        ),
       })
     }
   }
@@ -749,7 +792,7 @@ export function MotionLab({
           className="lab-canvas"
           onClick={onCanvasClick}
           role="img"
-          aria-label="محاكاة بصرية: سيارة حمراء وسيارة زرقاء تتحركان على طريق مستقيم ذي حارتين، مع لافتات مسافة كل عشرين متراً ونقاط مواضع كل ثانية."
+          aria-label="محاكاة بصرية: سيارة حمراء وسيارة زرقاء تتحركان على طريق مستقيم ذي حارتين، مع لافتات مسافة كل 20 m ونقاط مواضع كل 1 s."
         />
         <div className="lab-frame-badge" dir="rtl" aria-live="polite">
           <Eye size={16} aria-hidden="true" />
@@ -774,7 +817,8 @@ export function MotionLab({
             {running ? 'إيقاف مؤقت' : 'تشغيل'}
           </ActionButton>
           <ActionButton variant="secondary" onClick={stepOnce}>
-            <StepForward size={18} aria-hidden="true" /> خطوة +1 ثانية
+            <StepForward size={18} aria-hidden="true" /> خطوة +1{' '}
+            <span className="unit">s</span>
           </ActionButton>
           <ActionButton variant="ghost" onClick={reset}>
             <RotateCcw size={18} aria-hidden="true" /> إعادة
@@ -809,9 +853,9 @@ export function MotionLab({
             <Gauge size={17} aria-hidden="true" />
             سرعة السيارة الحمراء (الهدف)
             <output htmlFor="v-red" className="lab-slider__out">
-              <span className="num">{vRed}</span> م/ث
+              <Measure value={vRed} unit="metresPerSecond" digits={0} />
               <span className="lab-slider__kmh">
-                ≈ <span className="num">{formatMeasure(vRed * 3.6)}</span> كم/ساعة
+                ≈ <Measure value={vRed * 3.6} unit="kilometresPerHour" />
               </span>
             </output>
           </label>
@@ -830,9 +874,9 @@ export function MotionLab({
             <Gauge size={17} aria-hidden="true" />
             سرعة السيارة الزرقاء (المراقب)
             <output htmlFor="v-blue" className="lab-slider__out">
-              <span className="num">{vBlue}</span> م/ث
+              <Measure value={vBlue} unit="metresPerSecond" digits={0} />
               <span className="lab-slider__kmh">
-                ≈ <span className="num">{formatMeasure(vBlue * 3.6)}</span> كم/ساعة
+                ≈ <Measure value={vBlue * 3.6} unit="kilometresPerHour" />
               </span>
             </output>
           </label>
@@ -855,7 +899,7 @@ export function MotionLab({
             <Timer size={15} aria-hidden="true" /> الزمن المنقضي
           </span>
           <strong>
-            <span className="num">{formatMeasure(readouts.t)}</span> ث
+            <Measure value={readouts.t} unit="second" />
           </strong>
         </div>
         <div className="readout">
@@ -863,19 +907,19 @@ export function MotionLab({
             <Flag size={15} aria-hidden="true" /> مسافة الحمراء من البداية
           </span>
           <strong>
-            <span className="num">{formatMeasure(readouts.dRed)}</span> م
+            <Measure value={readouts.dRed} unit="metre" />
           </strong>
         </div>
         <div className="readout">
           <span className="readout__label">المسافة بين السيارتين</span>
           <strong>
-            <span className="num">{formatMeasure(readouts.gap)}</span> م
+            <Measure value={readouts.gap} unit="metre" />
           </strong>
         </div>
         <div className="readout readout--accent">
           <span className="readout__label">سرعة الحمراء بالنسبة إلى الزرقاء</span>
           <strong>
-            <span className="num">{formatMeasure(Math.abs(readouts.vRel))}</span> م/ث
+            <Measure value={Math.abs(readouts.vRel)} unit="metresPerSecond" />
           </strong>
         </div>
       </div>
@@ -923,14 +967,26 @@ export function MotionLab({
         {predictOn ? (
           <>
             <p>
-              السيارة الحمراء الآن عند <strong><span className="num">{formatMeasure(readouts.dRed)}</span> م</strong>{' '}
-              وتسير بسرعة <strong><span className="num">{vRed}</span> م/ث</strong>. أين ستكون بعد{' '}
-              <strong><span className="num">{predictDt}</span> ثوانٍ</strong>؟ اضغط على المسار في الأعلى
-              لتثبيت علم توقّعك، أو أدخل الموضع بالأمتار:
+              السيارة الحمراء الآن عند{' '}
+              <strong>
+                <Measure value={readouts.dRed} unit="metre" />
+              </strong>{' '}
+              وتسير بسرعة{' '}
+              <strong>
+                <Measure value={vRed} unit="metresPerSecond" digits={0} />
+              </strong>
+              . أين ستكون بعد{' '}
+              <strong>
+                <Measure value={predictDt} unit="second" digits={0} />
+              </strong>
+              ؟ استعمل العلاقة{' '}
+              <Tex tex="x_2 = x_1 + v\,\Delta t" label="الموضع الجديد = الموضع الحالي + السرعة × الزمن" />،
+              ثم اضغط على المسار في الأعلى لتثبيت علم توقّعك، أو أدخل الموضع من البداية بوحدة{' '}
+              <span className="unit">m</span>:
             </p>
             <div className="lab-predict__row">
               <label className="lab-predict__input">
-                توقّعي (متر من البداية)
+                توقّعي: الموضع من البداية بوحدة <span className="unit">m</span>
                 <input
                   type="number"
                   inputMode="decimal"
@@ -959,8 +1015,9 @@ export function MotionLab({
           </>
         ) : (
           <p>
-            اختبر فهمك لعلاقة (المسافة = السرعة × الزمن): سنوقف الزمن، وتتنبّأ أنت بموضع السيارة
-            الحمراء بعد ثوانٍ محدّدة. التنبّؤ الصحيح يمنحك نقاط خبرة!
+            اختبر فهمك لعلاقة{' '}
+            <Tex tex="d = v\,t" label="المسافة = السرعة × الزمن" />: سنوقف الزمن، وتتنبّأ أنت بموضع
+            السيارة الحمراء بعد مدّة زمنية محدّدة. التنبّؤ الصحيح يمنحك نقاط خبرة!
           </p>
         )}
       </section>
@@ -980,7 +1037,9 @@ export function MotionLab({
                 </span>
                 <span className="lab-missions__text">
                   <strong>{m.title}</strong>
-                  <span>{m.description}</span>
+                  <span>
+                    <RichText text={m.description} />
+                  </span>
                 </span>
                 <span className="lab-missions__xp">
                   +<span className="num">{m.xp}</span> XP

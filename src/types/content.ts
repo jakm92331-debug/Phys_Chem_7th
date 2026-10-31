@@ -83,6 +83,18 @@ export interface StageMeta {
 /* Rich content blocks used inside lesson stages                       */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Authoring standards for every content string on the platform:
+ *
+ * 1. UNITS ARE ENGLISH — always the standard scientific symbol (`m`, `s`,
+ *    `m/s`, `m/s²`, `kg`, `N`, `J`, `W`, `Pa`, `°C`…). Never an Arabic unit
+ *    word («متر», «ثانية») and never an Arabic abbreviation («م/ث»).
+ *    The Arabic prose around them stays Arabic.
+ * 2. MATHS IS LaTeX — any mathematical expression is written as LaTeX between
+ *    `$…$` (inline) or `$$…$$` (display) and rendered with KaTeX by
+ *    `<RichText>` / `<Tex>` (see `src/components/math/Math.tsx`).
+ */
+
 export type ContentBlock =
   | { kind: 'heading'; text: string }
   | { kind: 'text'; text: string }
@@ -95,9 +107,15 @@ export type ContentBlock =
     }
   | {
       kind: 'formula'
-      /** e.g. "السرعة = المسافة ÷ الزمن" */
-      formula: string
+      /**
+       * The law as LaTeX, rendered with KaTeX as a display block.
+       * e.g. `'\\bar{v} = \\dfrac{d}{t}'` — never plain text, and never with
+       * Arabic unit symbols (use `\mathrm{m/s}` for units inside maths).
+       */
+      tex: string
+      /** Arabic explanation of the law (plain prose, may contain `$…$`). */
       caption?: string
+      /** Symbol legend: `symbol` is LaTeX, `unit` is an English SI symbol. */
       symbols?: { symbol: string; meaning: string; unit?: string }[]
     }
   | { kind: 'list'; items: string[]; ordered?: boolean }
@@ -109,6 +127,11 @@ export type ContentBlock =
     }
   | { kind: 'steps'; steps: { title: string; text: string }[] }
 
+/**
+ * A quiz item. `prompt`, `choices`, `explanation` and `misconception` are
+ * rendered through `<RichText>`, so they may contain `$…$` LaTeX for any
+ * formula, and every unit inside them must be an English SI symbol.
+ */
 export interface QuizQuestion {
   id: string
   prompt: string
@@ -128,6 +151,10 @@ export interface LabMission {
   xp: number
 }
 
+/**
+ * All lesson copy. Arabic prose, English units (`m/s`, `s`, …) and LaTeX maths
+ * (`$…$`) — see the standards note above and `docs/CONTENT_STANDARDS.md`.
+ */
 export interface LessonContent {
   entryId: string
   source: ContentStatus

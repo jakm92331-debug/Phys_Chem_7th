@@ -5,6 +5,7 @@ import type { CurriculumEntry, Unit } from '@/types/content'
 import { useProgress } from '@/state/progress'
 import { ProgressBar, SourceBadge, StatusChip } from '@/components/ui/ui'
 import { UNIT_ICONS, UnitMotif } from '@/components/icons'
+import { Measure } from '@/components/math/Math'
 import './cards.css'
 
 function unitVars(unit: Unit): CSSProperties {
@@ -122,7 +123,8 @@ export function EntryCard({ entry, unit }: { entry: CurriculumEntry; unit: Unit 
           <FileText size={15} aria-hidden="true" /> صفحة <span className="num">{entry.page}</span> في الكتاب
         </span>
         <span>
-          <Clock size={15} aria-hidden="true" /> نحو <span className="num">{entry.estimatedMinutes}</span> دقيقة
+          <Clock size={15} aria-hidden="true" /> نحو{' '}
+          <Measure value={entry.estimatedMinutes} unit="minute" digits={0} />
         </span>
       </div>
 

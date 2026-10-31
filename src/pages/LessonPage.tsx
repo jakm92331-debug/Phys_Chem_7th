@@ -22,6 +22,7 @@ import { LessonShell } from '@/components/lesson/LessonShell'
 import { LinkButton, ProgressBar, SourceBadge, StatusChip } from '@/components/ui/ui'
 import { UNIT_ICONS, UnitMotif } from '@/components/icons'
 import { useProgress } from '@/state/progress'
+import { Measure } from '@/components/math/Math'
 import './LessonPage.css'
 
 function LessonHeader({ entry, unit }: { entry: CurriculumEntry; unit: Unit }) {
@@ -81,7 +82,7 @@ function LessonHeader({ entry, unit }: { entry: CurriculumEntry; unit: Unit }) {
           </span>
           <span>
             <Clock size={16} aria-hidden="true" /> نحو{' '}
-            <span className="num">{entry.estimatedMinutes}</span> دقيقة
+            <Measure value={entry.estimatedMinutes} unit="minute" digits={0} />
           </span>
           <SourceBadge status={entry.contentStatus} />
           <StatusChip status={progress.status} />
