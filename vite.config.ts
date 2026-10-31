@@ -15,8 +15,11 @@ export default defineConfig({
   base: './',
   server: {
     host: '0.0.0.0',
+    // Allow proxied preview hosts (e.g. cloud dev environments) in dev only.
+    allowedHosts: true,
   },
   preview: {
     host: '0.0.0.0',
+    allowedHosts: true,
   },
 })

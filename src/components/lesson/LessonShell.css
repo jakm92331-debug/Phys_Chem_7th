@@ -4,6 +4,12 @@
   gap: var(--sp-8);
   align-items: start;
 }
+/* Grid items must be allowed to shrink below their content's min-content
+   size — otherwise the mobile stepper's horizontal row (7 non-wrapping
+   buttons) forces the whole page wider than the viewport. */
+.lesson-shell > * {
+  min-width: 0;
+}
 
 /* ——— Stepper ——— */
 .stage-stepper {

@@ -420,15 +420,16 @@ export function MotionLab({
         }
       }
 
-      // label
+      // label (clamped so it never clips at the canvas edges)
       ctx.font = '700 11px "Readex Pro", sans-serif'
       const tw = ctx.measureText(label).width + 14
+      const lx = Math.min(Math.max(x, tw / 2 + 4), W - tw / 2 - 4)
       ctx.fillStyle = 'rgba(11,18,38,0.82)'
       ctx.beginPath()
-      ctx.roundRect(x - tw / 2, baseY - carH * 1.72 - 26, tw, 19, 9)
+      ctx.roundRect(lx - tw / 2, baseY - carH * 1.72 - 26, tw, 19, 9)
       ctx.fill()
       ctx.fillStyle = '#F1F5F9'
-      ctx.fillText(label, x, baseY - carH * 1.72 - 13)
+      ctx.fillText(label, lx, baseY - carH * 1.72 - 13)
 
       // velocity vector arrow (in the current frame)
       if (speedForArrow !== 0) {
