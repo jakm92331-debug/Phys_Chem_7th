@@ -1,0 +1,455 @@
+/* Home page: hero, continue card, units, philosophy, lab teaser, legend. */
+
+.section {
+  padding-block: var(--sp-16);
+}
+.section--tight {
+  padding-block: var(--sp-10);
+}
+.section--tinted {
+  background: linear-gradient(180deg, var(--surface-2), var(--paper));
+}
+
+/* ——— Hero ——— */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(52rem 30rem at 88% -10%, rgb(91 95 239 / 0.38), transparent 60%),
+    radial-gradient(44rem 26rem at 4% 115%, rgb(8 153 184 / 0.3), transparent 60%),
+    radial-gradient(30rem 18rem at 55% 120%, rgb(162 28 175 / 0.16), transparent 60%),
+    var(--ink-900);
+  color: var(--text-on-dark);
+}
+.hero::before {
+  /* subtle dotted "lab grid" */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgb(255 255 255 / 0.07) 1.2px, transparent 1.2px);
+  background-size: 26px 26px;
+  mask-image: linear-gradient(180deg, black, transparent 85%);
+  pointer-events: none;
+}
+.hero__inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: var(--sp-12);
+  align-items: center;
+  padding-block: clamp(var(--sp-12), 8vw, 6.5rem);
+}
+.hero__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  color: #9fd8f5;
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(255 255 255 / 0.16);
+  padding: 0.35rem 0.9rem;
+  border-radius: var(--r-full);
+  margin-block-end: var(--sp-6);
+}
+.hero__title {
+  font-size: var(--fs-3xl);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.3;
+  margin-block-end: var(--sp-5);
+}
+.hero__title-accent {
+  background: linear-gradient(90deg, #a5b4fc, #67e8f9 55%, #5eead4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero__lead {
+  font-size: var(--fs-md);
+  color: var(--text-on-dark-muted);
+  max-width: 34rem;
+  margin-block-end: var(--sp-8);
+}
+.hero__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  margin-block-end: var(--sp-10);
+}
+.hero__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-6) var(--sp-10);
+  margin: 0;
+}
+.hero__stats div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0;
+}
+.hero__stats dt {
+  font-size: var(--fs-xs);
+  color: var(--text-on-dark-muted);
+  font-weight: 700;
+}
+.hero__stats dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.hero-visual {
+  position: relative;
+  min-height: 22rem;
+}
+.hero-visual__svg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 18px 40px rgb(0 0 0 / 0.35));
+}
+.hv-atom {
+  transform-origin: 330px 140px;
+  animation: hv-spin 40s linear infinite;
+}
+@keyframes hv-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.hero-chip {
+  position: absolute;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-xs);
+  color: var(--text-on-dark);
+  background: rgb(16 26 54 / 0.82);
+  border: 1px solid rgb(255 255 255 / 0.2);
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--r-full);
+  backdrop-filter: blur(6px);
+  animation: hv-float 6s ease-in-out infinite;
+  white-space: nowrap;
+}
+.hero-chip--a {
+  inset-block-start: 6%;
+  inset-inline-start: 2%;
+}
+.hero-chip--b {
+  inset-block-start: 44%;
+  inset-inline-end: 0;
+  animation-delay: -2s;
+}
+.hero-chip--c {
+  inset-block-end: 4%;
+  inset-inline-start: 14%;
+  animation-delay: -4s;
+}
+@keyframes hv-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+/* ——— Continue card ——— */
+.continue-card {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--sp-8);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-md);
+  padding: clamp(var(--sp-6), 4vw, var(--sp-10));
+  margin-block-start: calc(-1 * var(--sp-16));
+  position: relative;
+  z-index: 2;
+}
+.continue-card__kicker {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--brand-2);
+  font-size: var(--fs-sm);
+  margin-block-end: var(--sp-2);
+}
+.continue-card__title {
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-weight: 900;
+  margin-block-end: var(--sp-2);
+}
+.continue-card__teaser {
+  color: var(--text-muted);
+  margin-block-end: var(--sp-6);
+  max-width: 32rem;
+}
+.continue-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+.continue-card__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  justify-content: center;
+}
+.mini-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4) var(--sp-5);
+}
+.mini-stat__label {
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  color: var(--text-muted);
+}
+.mini-stat strong {
+  font-family: var(--font-display);
+  color: var(--text-strong);
+  font-size: var(--fs-base);
+}
+.mini-stat__hint {
+  font-size: var(--fs-xs);
+  color: var(--text-faint);
+}
+
+/* ——— Units grid ——— */
+.units-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-6);
+}
+
+/* ——— Philosophy ——— */
+.philosophy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-5);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.philosophy-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--sp-6);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-med) var(--ease-out);
+}
+.philosophy-card:hover {
+  transform: translateY(-4px);
+}
+.philosophy-card__num {
+  position: absolute;
+  inset-block-start: var(--sp-4);
+  inset-inline-end: var(--sp-5);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: var(--fs-xl);
+  color: var(--surface-2);
+  line-height: 1;
+}
+.philosophy-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-md);
+  background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+  color: #fff;
+  margin-block-end: var(--sp-4);
+  box-shadow: 0 8px 18px rgb(91 95 239 / 0.3);
+}
+.philosophy-card h3 {
+  font-size: var(--fs-md);
+  margin-block-end: var(--sp-1);
+}
+.philosophy-card p {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+/* ——— Lab teaser ——— */
+.lab-teaser {
+  background:
+    radial-gradient(46rem 26rem at 90% 0%, rgb(14 165 164 / 0.28), transparent 60%),
+    radial-gradient(40rem 22rem at 0% 100%, rgb(91 95 239 / 0.3), transparent 60%),
+    var(--ink-900);
+  color: var(--text-on-dark);
+}
+.lab-teaser__inner {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: var(--sp-12);
+  align-items: center;
+}
+.lab-teaser__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: #9fd8f5;
+  margin-block-end: var(--sp-4);
+}
+.lab-teaser__title {
+  color: #fff;
+  font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+  font-weight: 900;
+  margin-block-end: var(--sp-4);
+}
+.lab-teaser__lead {
+  color: var(--text-on-dark-muted);
+  margin-block-end: var(--sp-6);
+  max-width: 34rem;
+}
+.lab-teaser__features {
+  list-style: none;
+  margin: 0 0 var(--sp-8);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.lab-teaser__features li {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-weight: 600;
+}
+.lab-teaser__features svg {
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.lab-teaser__panel {
+  background: var(--surface-dark-2);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: var(--r-xl);
+  padding: var(--sp-6);
+  box-shadow: var(--shadow-glow);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+.fake-gauge__label {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text-on-dark-muted);
+  display: block;
+}
+.fake-gauge__value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: var(--fs-lg);
+  color: #fff;
+}
+.fake-gauge__track {
+  height: 10px;
+  background: rgb(255 255 255 / 0.1);
+  border-radius: var(--r-full);
+  margin-block-start: var(--sp-2);
+  overflow: hidden;
+}
+.fake-gauge__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f87171, #ef4444);
+}
+.fake-gauge__fill--blue {
+  background: linear-gradient(90deg, #38bdf8, #2563eb);
+}
+.fake-gauge__insight {
+  background: rgb(245 179 1 / 0.12);
+  border: 1px dashed rgb(245 179 1 / 0.5);
+  color: #ffe9a8;
+  border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--fs-sm);
+}
+.fake-gauge__link {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: #7dd3fc;
+  align-self: flex-start;
+}
+
+/* ——— Legend ——— */
+.legend-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  padding: clamp(var(--sp-6), 4vw, var(--sp-10));
+  box-shadow: var(--shadow-sm);
+}
+.legend-card__title {
+  font-size: var(--fs-lg);
+  margin-block-end: var(--sp-6);
+}
+.legend-card__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-6);
+}
+.legend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-3);
+}
+.legend-item p {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+/* ——— Responsive ——— */
+@media (max-width: 64rem) {
+  .hero__inner {
+    grid-template-columns: 1fr;
+    gap: var(--sp-8);
+  }
+  .hero-visual {
+    max-width: 30rem;
+  }
+  .lab-teaser__inner {
+    grid-template-columns: 1fr;
+  }
+  .continue-card {
+    grid-template-columns: 1fr;
+    margin-block-start: calc(-1 * var(--sp-10));
+  }
+  .philosophy-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 44rem) {
+  .units-grid {
+    grid-template-columns: 1fr;
+  }
+  .legend-card__grid {
+    grid-template-columns: 1fr;
+  }
+  .philosophy-grid {
+    grid-template-columns: 1fr;
+  }
+  .section {
+    padding-block: var(--sp-12);
+  }
+  .hero__stats {
+    gap: var(--sp-4) var(--sp-6);
+  }
+}
