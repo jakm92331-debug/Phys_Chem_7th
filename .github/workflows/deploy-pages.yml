@@ -1,0 +1,79 @@
+# Deploy the production build to GitHub Pages.
+#
+# This workflow is independent from ci.yml: ci.yml only verifies PRs/pushes to
+# main (lint, typecheck, test, build — read-only), while this workflow builds
+# and publishes to Pages on every push to main. The two never touch the same
+# resources, so they can run side by side without conflicting.
+#
+# No secrets are required: deployment authenticates via OIDC (id-token: write)
+# together with the pages: write permission on the deploy job only.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Baseline for the build job: read-only access to the repository.
+# The deploy job below overrides this with the Pages-specific permissions.
+permissions:
+  contents: read
+
+# Serialize deployments so two pushes to main cannot race each other.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # vite.config.ts sets base: './', so dist/ is relocatable and can be
+          # served from the project sub-path https://<user>.github.io/<repo>/
+          path: ./dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
