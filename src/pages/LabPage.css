@@ -1,0 +1,117 @@
+.lab-body {
+  padding-block: var(--sp-10) var(--sp-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-16);
+}
+
+.lab-intro-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-4) var(--sp-5);
+  margin-block-end: var(--sp-6);
+}
+.lab-intro-row__icon {
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-md);
+  background: linear-gradient(135deg, var(--unit-1), #8b7cf6);
+  color: #fff;
+  box-shadow: 0 10px 22px rgb(91 95 239 / 0.35);
+}
+.lab-intro-row > div {
+  flex: 1 1 20rem;
+}
+.lab-intro-row h2 {
+  font-size: var(--fs-xl);
+  font-weight: 900;
+}
+.lab-intro-row p {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  max-width: 42rem;
+}
+.lab-intro-row__badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-2);
+}
+.lab-lesson-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--fs-sm);
+  color: var(--brand-1);
+  min-height: 36px;
+}
+
+.future-title {
+  font-size: var(--fs-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-block-end: var(--sp-2);
+}
+.future-title svg {
+  color: var(--brand-1);
+}
+.future-lead {
+  color: var(--text-muted);
+  max-width: 46rem;
+  margin-block-end: var(--sp-6);
+}
+.future-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-5);
+}
+.future-card {
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--r-lg);
+  padding: var(--sp-6);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+}
+.future-card__icon {
+  width: 52px;
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text-faint);
+}
+.future-card h3 {
+  font-size: var(--fs-md);
+}
+.future-card__unit {
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  color: var(--brand-2);
+}
+.future-card p {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  flex: 1;
+}
+
+@media (max-width: 56rem) {
+  .future-grid {
+    grid-template-columns: 1fr;
+  }
+  .lab-intro-row__badges {
+    align-items: flex-start;
+  }
+}
