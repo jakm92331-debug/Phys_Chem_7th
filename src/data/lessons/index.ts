@@ -23,3 +23,16 @@ export function getLessonContent(entryId: string): LessonContent | undefined {
 export function hasLessonContent(entryId: string): boolean {
   return entryId in LESSON_CONTENT
 }
+
+/**
+ * Every lesson registered in `LESSON_CONTENT`, in a stable order.
+ *
+ * This is the single entry point for anything that must run over *all* lesson
+ * content — most importantly the content-standard checks. Import a specific
+ * lesson file only where that one lesson is genuinely the subject; iterating
+ * lessons must always go through here, otherwise a newly registered lesson
+ * would silently escape the standards.
+ */
+export function allLessonContent(): LessonContent[] {
+  return Object.values(LESSON_CONTENT).sort((a, b) => a.entryId.localeCompare(b.entryId))
+}

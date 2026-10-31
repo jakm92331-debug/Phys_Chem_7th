@@ -13,6 +13,9 @@ import type { LessonContent } from '@/types/content'
 export const lesson01MotionRest: LessonContent = {
   entryId: 'lesson-01-motion-rest',
   source: 'demo-supplementary',
+  // Quantitative lesson: it teaches the average-speed law, so the standards
+  // require a `formula` block here (other lessons may teach none).
+  requiresLaw: true,
 
   hook: {
     question: 'أنت جالس تقرأ كتاباً داخل حافلة تسير بسرعة… هل كتابك متحرك أم ساكن؟',

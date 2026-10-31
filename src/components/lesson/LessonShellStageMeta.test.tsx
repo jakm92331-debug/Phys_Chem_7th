@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { LessonShell } from './LessonShell'
 import { ProgressProvider } from '@/state/progress'
 import { ALL_ENTRIES, getUnitForEntry } from '@/data/curriculum'
-import { lesson01MotionRest } from '@/data/lessons/lesson-01-motion-rest'
+import { allLessonContent } from '@/data/lessons'
 
 
 /**
@@ -29,12 +29,13 @@ vi.mock('@/data/curriculum', async (importOriginal) => {
 
 describe('LessonShell: stage metadata is maths-aware', () => {
   it('renders stage titles and descriptions with KaTeX', () => {
-    const entry = ALL_ENTRIES.find((e) => e.id === lesson01MotionRest.entryId)!
+    const lesson = allLessonContent()[0]
+    const entry = ALL_ENTRIES.find((e) => e.id === lesson.entryId)!
 
     render(
       <ProgressProvider>
         <MemoryRouter>
-          <LessonShell entry={entry} unit={getUnitForEntry(entry)} content={lesson01MotionRest} />
+          <LessonShell entry={entry} unit={getUnitForEntry(entry)} content={lesson} />
         </MemoryRouter>
       </ProgressProvider>,
     )

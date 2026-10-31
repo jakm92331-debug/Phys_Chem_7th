@@ -158,6 +158,16 @@ export interface LabMission {
 export interface LessonContent {
   entryId: string
   source: ContentStatus
+  /**
+   * Declares that this lesson is quantitative and therefore must state at least
+   * one law as a `formula` block (`tex`) with its symbol table.
+   *
+   * Optional on purpose: a descriptive lesson (types of paths, lab safety,
+   * states of matter…) may legitimately teach no formula, and the standards
+   * must not force one. When the flag is absent, every `formula` block that
+   * *does* exist is still checked — only its presence is not required.
+   */
+  requiresLaw?: boolean
   hook: {
     question: string
     scenario: string

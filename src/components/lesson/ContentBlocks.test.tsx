@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { ContentBlocks } from './ContentBlocks'
 import { findArabicUnits } from '@/lib/content-standards'
 import type { ContentBlock } from '@/types/content'
-import { lesson01MotionRest } from '@/data/lessons/lesson-01-motion-rest'
+import { allLessonContent } from '@/data/lessons'
 
 function renderBlocks(blocks: ContentBlock[]) {
   return render(<ContentBlocks blocks={blocks} />)
@@ -226,10 +226,18 @@ describe('every content field renders maths with KaTeX', () => {
   })
 })
 
-describe('the shipped lesson content', () => {
-  it('renders without a single raw maths delimiter', () => {
-    renderBlocks([...lesson01MotionRest.discover, ...lesson01MotionRest.apply])
-    expect(document.body.textContent).not.toContain('$')
-    expect(document.querySelectorAll('.math--error')).toHaveLength(0)
-  })
+describe('every registered lesson', () => {
+  // Registry-driven: a lesson that appears in src/data/lessons/index.ts is
+  // swept here automatically — nothing to update when one is added.
+  const lessons = allLessonContent()
+  expect(lessons.length).toBeGreaterThan(0)
+
+  it.each(lessons.map((l) => [l.entryId, l] as const))(
+    '%s renders without a single raw maths delimiter',
+    (_entryId, lesson) => {
+      renderBlocks([...lesson.discover, ...lesson.apply])
+      expect(document.body.textContent).not.toContain('$')
+      expect(document.querySelectorAll('.math--error')).toHaveLength(0)
+    },
+  )
 })
