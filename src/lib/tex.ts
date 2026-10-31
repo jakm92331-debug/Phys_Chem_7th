@@ -64,6 +64,17 @@ export function renderTex(tex: string, displayMode = false): TexResult {
  */
 const mathPattern = () => /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g
 
+/**
+ * Flattens a string to plain text for contexts that cannot render maths
+ * (`aria-label`, `title`, canvas labels…): the delimiters disappear, the
+ * expression stays as readable LaTeX. The visible copy still uses KaTeX.
+ */
+export function mathToPlainText(source: string): string {
+  return splitMath(source)
+    .map((segment) => segment.value)
+    .join('')
+}
+
 /** True when the string contains at least one `$…$` / `$$…$$` expression. */
 export function hasMath(source: string): boolean {
   return mathPattern().test(source)

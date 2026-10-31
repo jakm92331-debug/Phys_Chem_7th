@@ -128,7 +128,7 @@ export const lesson01MotionRest: LessonContent = {
       variant: 'idea',
       title: 'وحدات أخرى للسرعة',
       text:
-        'في الحياة اليومية نقيس سرعة السيارات بالكيلومتر في الساعة $\\mathrm{km/h}$. للتحويل: $v_{\\mathrm{km/h}} = v_{\\mathrm{m/s}} \\times 3.6$. فسائق يسير بسرعة $20\\ \\mathrm{m/s}$ تعادل سرعته $72\\ \\mathrm{km/h}$.',
+        'في الحياة اليومية نقيس سرعة السيارات بوحدة $\\mathrm{km/h}$. للتحويل: $v_{\\mathrm{km/h}} = v_{\\mathrm{m/s}} \\times 3.6$. فسائق يسير بسرعة $20\\ \\mathrm{m/s}$ تعادل سرعته $72\\ \\mathrm{km/h}$.',
     },
     { kind: 'heading', text: 'الحركة المنتظمة' },
     {

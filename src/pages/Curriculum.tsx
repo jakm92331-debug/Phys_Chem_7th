@@ -8,6 +8,8 @@ import { ProgressBar } from '@/components/ui/ui'
 import { UNIT_ICONS, UnitMotif } from '@/components/icons'
 import { useProgress } from '@/state/progress'
 import type { Unit } from '@/types/content'
+import { mathToPlainText } from '@/lib/tex'
+import { RichText } from '@/components/math/Math'
 import './Curriculum.css'
 
 type Filter = 'all' | 'lessons' | 'projects' | 'in-progress' | 'completed'
@@ -65,9 +67,11 @@ function UnitSection({ unit, filter }: { unit: Unit; filter: Filter }) {
             الوحدة <span className="num">{unit.order}</span>
           </p>
           <h2 id={`${unit.id}-title`} className="unit-section__title">
-            {unit.title}
+            <RichText text={unit.title} />
           </h2>
-          <p className="unit-section__subtitle">{unit.subtitle}</p>
+          <p className="unit-section__subtitle">
+            <RichText text={unit.subtitle} />
+          </p>
         </div>
         <UnitMotif motif={unit.theme.motif} className="unit-section__motif" />
         <div className="unit-section__progress">
@@ -78,7 +82,7 @@ function UnitSection({ unit, filter }: { unit: Unit; filter: Filter }) {
           <ProgressBar
             ratio={unit.entries.length ? completed / unit.entries.length : 0}
             color={unit.theme.primary}
-            label={`تقدّمك في وحدة ${unit.title}`}
+            label={`تقدّمك في وحدة ${mathToPlainText(unit.title)}`}
             size="sm"
           />
         </div>

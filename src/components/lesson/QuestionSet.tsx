@@ -46,7 +46,7 @@ function CheckQuestion({
       <legend className="q-card__legend">
         <span className="q-card__num num">{index + 1}</span>
         <span className="q-card__prompt">
-          <RichText text={question.prompt} />
+          <RichText text={question.prompt} inlineOnly />
         </span>
         <span className={`q-diff q-diff--${question.difficulty}`}>
           {DIFFICULTY_LABEL[question.difficulty]}
@@ -80,7 +80,7 @@ function CheckQuestion({
                 )}
               </span>
               <span>
-                <RichText text={choice} />
+                <RichText text={choice} inlineOnly />
               </span>
             </label>
           )
@@ -96,7 +96,7 @@ function CheckQuestion({
               {question.misconception && (
                 <>
                   {' '}
-                  تلميح: <RichText text={question.misconception} />
+                  تلميح: <RichText text={question.misconception} inlineOnly />
                 </>
               )}
             </span>
@@ -106,7 +106,7 @@ function CheckQuestion({
           <p className="q-feedback q-feedback--right">
             <CheckCircle2 size={18} aria-hidden="true" />
             <span>
-              <strong>إجابة صحيحة!</strong> <RichText text={question.explanation} />
+              <strong>إجابة صحيحة!</strong> <RichText text={question.explanation} inlineOnly />
             </span>
           </p>
         )}
@@ -240,7 +240,7 @@ export function QuizSet({
             <legend className="q-card__legend">
               <span className="q-card__num num">{qi + 1}</span>
               <span className="q-card__prompt">
-                <RichText text={q.prompt} />
+                <RichText text={q.prompt} inlineOnly />
               </span>
               <span className={`q-diff q-diff--${q.difficulty}`}>
                 {DIFFICULTY_LABEL[q.difficulty]}
@@ -280,7 +280,7 @@ export function QuizSet({
                       )}
                     </span>
                     <span>
-                      <RichText text={choice} />
+                      <RichText text={choice} inlineOnly />
                     </span>
                   </label>
                 )
@@ -296,11 +296,11 @@ export function QuizSet({
                 )}
                 <span>
                   <strong>{isRight ? 'صحيحة. ' : 'ليست صحيحة. '}</strong>
-                  <RichText text={q.explanation} />
+                  <RichText text={q.explanation} inlineOnly />
                   {!isRight && q.misconception && (
                     <>
                       {' '}
-                      تنبيه: <RichText text={q.misconception} />
+                      تنبيه: <RichText text={q.misconception} inlineOnly />
                     </>
                   )}
                 </span>

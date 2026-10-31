@@ -77,16 +77,26 @@ export function BlockMath({ tex, className, label }: Omit<Parameters<typeof Tex>
  * Renders a string of Arabic prose that may contain `$…$` (inline) and
  * `$$…$$` (display) LaTeX. Strings without maths are returned untouched, so
  * plain text keeps its normal text nodes (and stays matchable in tests).
+ *
+ * EVERY content string shown to a student must pass through this component —
+ * that is what guarantees no maths can reach the screen unrendered.
+ *
+ * `inlineOnly` is for strings that live inside an inline element (a term, a
+ * title, a table cell, a choice label): display maths is still rendered by
+ * KaTeX, but as an inline box, so no block box appears inside inline content.
  */
 export function RichText({
   text,
   className,
   as,
+  inlineOnly = false,
 }: {
   text: string
   className?: string
   /** Element to wrap the result in; omit for a bare fragment. */
   as?: 'span' | 'p' | 'div' | 'li'
+  /** Keep `$$…$$` inline — use inside inline elements (titles, terms, cells). */
+  inlineOnly?: boolean
 }) {
   const segments = splitMath(text)
   const isPlain = segments.every((s) => s.type === 'text')
@@ -100,7 +110,7 @@ export function RichText({
     segment.type === 'text' ? (
       <span key={i}>{segment.value}</span>
     ) : (
-      <Tex key={i} tex={segment.value} display={segment.type === 'block'} />
+      <Tex key={i} tex={segment.value} display={!inlineOnly && segment.type === 'block'} />
     ),
   )
 

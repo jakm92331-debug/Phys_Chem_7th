@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { ContentBlocks } from './ContentBlocks'
 import { findArabicUnits } from '@/lib/content-standards'
 import type { ContentBlock } from '@/types/content'
+import { lesson01MotionRest } from '@/data/lessons/lesson-01-motion-rest'
 
 function renderBlocks(blocks: ContentBlock[]) {
   return render(<ContentBlocks blocks={blocks} />)
@@ -82,5 +83,153 @@ describe('ContentBlocks: prose, callouts, lists and steps', () => {
     ])
     expect(container.querySelector('.katex')).toBeNull()
     expect(container.textContent).toBe('الحركة والسكون مفهومان نسبيان')
+  })
+})
+
+/* ------------------------------------------------------------------ */
+/* Every text field must be KaTeX-capable — including the short ones    */
+/* (headings, terms, titles, cells) that used to bypass <RichText>.     */
+/* ------------------------------------------------------------------ */
+
+const MATH = 'قيمة $v = \\frac{d}{t}$ هنا'
+
+interface FieldCase {
+  name: string
+  blocks: ContentBlock[]
+  /** When the field is rendered inside an inline host, maths must stay inline. */
+  inlineHost?: string
+}
+
+const FIELD_CASES: FieldCase[] = [
+  { name: 'heading.text', blocks: [{ kind: 'heading', text: MATH }] },
+  {
+    name: 'definition.term',
+    blocks: [{ kind: 'definition', term: MATH, text: 'شرح المصطلح' }],
+    inlineHost: '.cb-definition__term',
+  },
+  { name: 'definition.text', blocks: [{ kind: 'definition', term: 'المصطلح', text: MATH }] },
+  {
+    name: 'callout.title',
+    blocks: [{ kind: 'callout', variant: 'idea', title: MATH, text: 'نص التنبيه' }],
+    inlineHost: '.cb-callout__title',
+  },
+  {
+    name: 'callout.text',
+    blocks: [{ kind: 'callout', variant: 'idea', title: 'عنوان', text: MATH }],
+  },
+  {
+    name: 'formula.caption',
+    blocks: [{ kind: 'formula', tex: '\\bar{v}=\\dfrac{d}{t}', caption: MATH }],
+  },
+  {
+    name: 'formula.symbols.meaning',
+    blocks: [
+      {
+        kind: 'formula',
+        tex: '\\bar{v}=\\dfrac{d}{t}',
+        symbols: [{ symbol: 'v', meaning: MATH, unit: 'm/s' }],
+      },
+    ],
+    inlineHost: '.cb-formula__symbols li',
+  },
+  { name: 'list.items', blocks: [{ kind: 'list', items: [MATH, 'عنصر'] }] },
+  {
+    name: 'compare.leftTitle',
+    blocks: [
+      {
+        kind: 'compare',
+        leftTitle: MATH,
+        rightTitle: 'يمين',
+        rows: [{ label: 'وجه', left: 'أ', right: 'ب' }],
+      },
+    ],
+    inlineHost: '.cb-compare__row--head span[role="columnheader"]:nth-of-type(2)',
+  },
+  {
+    name: 'compare.rightTitle',
+    blocks: [
+      {
+        kind: 'compare',
+        leftTitle: 'يسار',
+        rightTitle: MATH,
+        rows: [{ label: 'وجه', left: 'أ', right: 'ب' }],
+      },
+    ],
+    inlineHost: '.cb-compare__row--head span[role="columnheader"]:nth-of-type(3)',
+  },
+  {
+    name: 'compare.row.label',
+    blocks: [
+      {
+        kind: 'compare',
+        leftTitle: 'يسار',
+        rightTitle: 'يمين',
+        rows: [{ label: MATH, left: 'أ', right: 'ب' }],
+      },
+    ],
+    inlineHost: '.cb-compare__label',
+  },
+  {
+    name: 'compare.row.cells',
+    blocks: [
+      {
+        kind: 'compare',
+        leftTitle: 'يسار',
+        rightTitle: 'يمين',
+        rows: [{ label: 'وجه', left: MATH, right: MATH }],
+      },
+    ],
+    inlineHost: '.cb-compare__row:not(.cb-compare__row--head) span[role="cell"]',
+  },
+  {
+    name: 'steps.title',
+    blocks: [{ kind: 'steps', steps: [{ title: MATH, text: 'نص الخطوة' }] }],
+    inlineHost: '.cb-step__title',
+  },
+  {
+    name: 'steps.text',
+    blocks: [{ kind: 'steps', steps: [{ title: 'الخطوة', text: MATH }] }],
+  },
+]
+
+describe('every content field renders maths with KaTeX', () => {
+  it.each(FIELD_CASES)('$name', ({ blocks, inlineHost }) => {
+    const { container } = renderBlocks(blocks)
+    // 1. the expression really is KaTeX…
+    expect(container.querySelectorAll('.katex').length).toBeGreaterThan(0)
+    // 2. …and nothing leaked through as plain text.
+    expect(container.textContent).not.toContain('$')
+    expect(container.querySelectorAll('.math--error')).toHaveLength(0)
+    // 3. fields hosted by an inline element keep the maths inline.
+    if (inlineHost) {
+      const hosts = container.querySelectorAll(inlineHost)
+      expect(hosts.length).toBeGreaterThan(0)
+      for (const host of hosts) {
+        expect(host.querySelectorAll('.katex').length).toBeGreaterThan(0)
+        expect(host.querySelectorAll('.math--block')).toHaveLength(0)
+      }
+    }
+  })
+
+  it('keeps display maths as a block in block hosts (headings, paragraphs)', () => {
+    const { container } = renderBlocks([{ kind: 'heading', text: 'قانون $$v=\\frac{d}{t}$$ هنا' }])
+    expect(container.querySelectorAll('.math--block')).toHaveLength(1)
+    expect(container.querySelector('.math--block')?.closest('h3')).not.toBeNull()
+  })
+
+  it('forces display maths inline inside inline hosts (terms, titles, cells)', () => {
+    const { container } = renderBlocks([
+      { kind: 'definition', term: 'المصطلح $$v=\\frac{d}{t}$$', text: 'شرح' },
+    ])
+    expect(container.querySelectorAll('.katex').length).toBe(1)
+    expect(container.querySelectorAll('.math--block')).toHaveLength(0)
+  })
+})
+
+describe('the shipped lesson content', () => {
+  it('renders without a single raw maths delimiter', () => {
+    renderBlocks([...lesson01MotionRest.discover, ...lesson01MotionRest.apply])
+    expect(document.body.textContent).not.toContain('$')
+    expect(document.querySelectorAll('.math--error')).toHaveLength(0)
   })
 })

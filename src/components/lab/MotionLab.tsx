@@ -924,13 +924,13 @@ export function MotionLab({
         </div>
       </div>
       <p className="lab-insight" aria-live="polite">
-        {relSentence}
+        <RichText text={relSentence} />
       </p>
 
       {/* ——— Graph ——— */}
       <figure className="lab-graph-wrap">
         <figcaption className="lab-graph-title">
-          مخطط (المسافة – الزمن)
+          <RichText text="مخطط (المسافة – الزمن)" inlineOnly />
           <span className="lab-graph-legend">
             <span className="dot dot--red" aria-hidden="true" /> الحمراء
             <span className="dot dot--blue" aria-hidden="true" /> الزرقاء
@@ -1036,9 +1036,11 @@ export function MotionLab({
                   {done ? <CheckCircle2 size={20} /> : <span className="lab-missions__circle" />}
                 </span>
                 <span className="lab-missions__text">
-                  <strong>{m.title}</strong>
+                  <strong>
+                    <RichText text={m.title} inlineOnly />
+                  </strong>
                   <span>
-                    <RichText text={m.description} />
+                    <RichText text={m.description} inlineOnly />
                   </span>
                 </span>
                 <span className="lab-missions__xp">

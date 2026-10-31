@@ -5,7 +5,8 @@ import type { CurriculumEntry, Unit } from '@/types/content'
 import { useProgress } from '@/state/progress'
 import { ProgressBar, SourceBadge, StatusChip } from '@/components/ui/ui'
 import { UNIT_ICONS, UnitMotif } from '@/components/icons'
-import { Measure } from '@/components/math/Math'
+import { mathToPlainText } from '@/lib/tex'
+import { Measure, RichText } from '@/components/math/Math'
 import './cards.css'
 
 function unitVars(unit: Unit): CSSProperties {
@@ -37,9 +38,15 @@ export function UnitCard({ unit }: { unit: Unit }) {
         </span>
       </div>
       <div className="unit-card__body">
-        <h3 className="unit-card__title">{unit.title}</h3>
-        <p className="unit-card__subtitle">{unit.subtitle}</p>
-        <p className="unit-card__desc">{unit.description}</p>
+        <h3 className="unit-card__title">
+          <RichText text={unit.title} />
+        </h3>
+        <p className="unit-card__subtitle">
+          <RichText text={unit.subtitle} />
+        </p>
+        <p className="unit-card__desc">
+          <RichText text={unit.description} />
+        </p>
 
         <div className="unit-card__meta">
           <span>
@@ -59,14 +66,14 @@ export function UnitCard({ unit }: { unit: Unit }) {
         <ProgressBar
           ratio={total ? completed / total : 0}
           color={unit.theme.primary}
-          label={`تقدّمك في وحدة ${unit.title}`}
+          label={`تقدّمك في وحدة ${mathToPlainText(unit.title)}`}
           size="sm"
         />
 
         <Link
           to={`/curriculum#${unit.id}`}
           className="unit-card__cta"
-          aria-label={`استكشف دروس وحدة ${unit.title}`}
+          aria-label={`استكشف دروس وحدة ${mathToPlainText(unit.title)}`}
         >
           استكشف دروس الوحدة
           <ArrowLeft size={18} aria-hidden="true" />
@@ -106,14 +113,18 @@ export function EntryCard({ entry, unit }: { entry: CurriculumEntry; unit: Unit 
         <StatusChip status={progress.status} />
       </div>
 
-      <h3 className="entry-card__title">{entry.title}</h3>
-      <p className="entry-card__teaser">{entry.teaser}</p>
+      <h3 className="entry-card__title">
+        <RichText text={entry.title} />
+      </h3>
+      <p className="entry-card__teaser">
+        <RichText text={entry.teaser} />
+      </p>
 
       {(progress.status !== 'not-started') && (
         <ProgressBar
           ratio={progress.status === 'completed' ? 1 : stageRatio}
           color={unit.theme.primary}
-          label={`تقدّمك في ${entry.title}`}
+          label={`تقدّمك في ${mathToPlainText(entry.title)}`}
           size="sm"
         />
       )}
@@ -133,7 +144,7 @@ export function EntryCard({ entry, unit }: { entry: CurriculumEntry; unit: Unit 
         <Link
           to={`/lesson/${entry.slug}`}
           className="entry-card__cta"
-          aria-label={`${progress.status === 'not-started' ? 'افتح' : 'تابع'}: ${entry.title}`}
+          aria-label={`${progress.status === 'not-started' ? 'افتح' : 'تابع'}: ${mathToPlainText(entry.title)}`}
         >
           {progress.status === 'completed'
             ? 'راجع الدرس'

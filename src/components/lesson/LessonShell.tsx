@@ -146,8 +146,12 @@ export function LessonShell({
                     {done ? <Check size={16} /> : <span className="num">{i + 1}</span>}
                   </span>
                   <span className="stage-btn__text">
-                    <span className="stage-btn__title">{stage.title}</span>
-                    <span className="stage-btn__desc">{stage.description}</span>
+                    <span className="stage-btn__title">
+                      <RichText text={stage.title} inlineOnly />
+                    </span>
+                    <span className="stage-btn__desc">
+                      <RichText text={stage.description} inlineOnly />
+                    </span>
                   </span>
                 </button>
               </li>
@@ -168,8 +172,12 @@ export function LessonShell({
               </span>
             )}
           </p>
-          <h2 className="stage-panel__title">{activeMeta.title}</h2>
-          <p className="stage-panel__desc">{activeMeta.description}</p>
+          <h2 className="stage-panel__title">
+            <RichText text={activeMeta.title} />
+          </h2>
+          <p className="stage-panel__desc">
+            <RichText text={activeMeta.description} />
+          </p>
         </header>
 
         {activeStage === 'hook' && (
@@ -321,7 +329,9 @@ export function LessonShell({
               <dl>
                 {content.summary.vocabulary.map((v) => (
                   <div key={v.term}>
-                    <dt>{v.term}</dt>
+                    <dt>
+                      <RichText text={v.term} inlineOnly />
+                    </dt>
                     <dd>
                       <RichText text={v.meaning} />
                     </dd>

@@ -12,6 +12,7 @@ import { ALL_ENTRIES, getUnitForEntry } from '@/data/curriculum'
 import { hasLessonContent } from '@/data/lessons'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { SourceBadge } from '@/components/ui/ui'
+import { RichText } from '@/components/math/Math'
 import './TeacherPage.css'
 
 const CAPABILITIES = [
@@ -116,9 +117,11 @@ export function TeacherPage() {
                 </span>
                 <span className="inventory__name" role="cell">
                   {entry.kind === 'project' ? 'مشروع: ' : ''}
-                  {entry.title}
+                  <RichText text={entry.title} inlineOnly />
                 </span>
-                <span role="cell">{getUnitForEntry(entry).title}</span>
+                <span role="cell">
+                  <RichText text={getUnitForEntry(entry).title} inlineOnly />
+                </span>
                 <span className="num" role="cell">
                   {entry.page}
                 </span>

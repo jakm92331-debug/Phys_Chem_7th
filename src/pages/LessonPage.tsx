@@ -22,7 +22,8 @@ import { LessonShell } from '@/components/lesson/LessonShell'
 import { LinkButton, ProgressBar, SourceBadge, StatusChip } from '@/components/ui/ui'
 import { UNIT_ICONS, UnitMotif } from '@/components/icons'
 import { useProgress } from '@/state/progress'
-import { Measure } from '@/components/math/Math'
+import { Measure, RichText } from '@/components/math/Math'
+import { mathToPlainText } from '@/lib/tex'
 import './LessonPage.css'
 
 function LessonHeader({ entry, unit }: { entry: CurriculumEntry; unit: Unit }) {
@@ -46,7 +47,8 @@ function LessonHeader({ entry, unit }: { entry: CurriculumEntry; unit: Unit }) {
           <Link to="/curriculum">المنهج الدراسي</Link>
           <ChevronLeft size={15} aria-hidden="true" />
           <Link to={`/curriculum#${unit.id}`}>
-            الوحدة <span className="num">{unit.order}</span>: {unit.title}
+            الوحدة <span className="num">{unit.order}</span>:{' '}
+            <RichText text={unit.title} inlineOnly />
           </Link>
           <ChevronLeft size={15} aria-hidden="true" />
           <span aria-current="page">{entry.title}</span>
@@ -69,8 +71,12 @@ function LessonHeader({ entry, unit }: { entry: CurriculumEntry; unit: Unit }) {
                 </>
               )}
             </p>
-            <h1 className="lesson-header__title">{entry.title}</h1>
-            <p className="lesson-header__teaser">{entry.teaser}</p>
+            <h1 className="lesson-header__title">
+              <RichText text={entry.title} />
+            </h1>
+            <p className="lesson-header__teaser">
+              <RichText text={entry.teaser} />
+            </p>
           </div>
           <UnitMotif motif={unit.theme.motif} className="lesson-header__motif" />
         </div>
@@ -164,7 +170,7 @@ function AdjacentNav({ entry }: { entry: CurriculumEntry }) {
           </span>
           <strong>
             {prev.kind === 'project' ? 'مشروع: ' : `الدرس ${prev.order}: `}
-            {prev.title}
+            <RichText text={prev.title} inlineOnly />
           </strong>
           <span className="adjacent-card__page">
             صفحة <span className="num">{prev.page}</span>
@@ -180,7 +186,7 @@ function AdjacentNav({ entry }: { entry: CurriculumEntry }) {
           </span>
           <strong>
             {next.kind === 'project' ? 'مشروع: ' : `الدرس ${next.order}: `}
-            {next.title}
+            <RichText text={next.title} inlineOnly />
           </strong>
           <span className="adjacent-card__page">
             صفحة <span className="num">{next.page}</span>
@@ -199,7 +205,7 @@ export function LessonPage() {
 
   useEffect(() => {
     document.title = entry
-      ? `${entry.title} | أفق العلوم`
+      ? `${mathToPlainText(entry.title)} | أفق العلوم`
       : 'درس غير موجود | أفق العلوم'
     return () => {
       document.title = 'أفق العلوم | الفيزياء والكيمياء — الصف السابع'

@@ -7,7 +7,7 @@ import {
   unit,
   type UnitSymbol,
 } from './units'
-import { findArabicUnits, hasArabicUnits } from './content-standards'
+import { describeOffence, findArabicUnits, hasArabicUnits } from './content-standards'
 
 const ARABIC_LETTER = /[؀-ۿ]/
 
@@ -64,30 +64,127 @@ describe('number & quantity formatting', () => {
   })
 })
 
-describe('Arabic-unit detector', () => {
-  it('flags every Arabic unit form we must avoid', () => {
-    expect(findArabicUnits('سرعة السيارة 5 م/ث')).not.toHaveLength(0)
-    expect(findArabicUnits('السرعة 72 كم/ساعة')).not.toHaveLength(0)
-    expect(findArabicUnits('وحدة القياس متر/ثانية')).not.toHaveLength(0)
-    expect(findArabicUnits('درجة الحرارة °م')).not.toHaveLength(0)
-    expect(findArabicUnits('قطع 100 متر')).not.toHaveLength(0)
-    expect(findArabicUnits('استغرق 20 ثانية')).not.toHaveLength(0)
-    expect(findArabicUnits('كتلته 3 كجم')).not.toHaveLength(0)
-    expect(findArabicUnits('<span>12</span> م')).not.toHaveLength(0)
+describe('Arabic-unit detector: it catches what must be caught', () => {
+  const flagged = (text: string) => findArabicUnits(text).length > 0
+
+  it('catches abbreviations that are always wrong', () => {
+    for (const text of [
+      'سرعة السيارة 5 م/ث',
+      'السرعة 72 كم/ساعة',
+      'السرعة 90 كيلومتر/ساعة',
+      'تسارع 2 متر/ثانية',
+      'سرعة النملة 1 سنتيمتر/ثانية',
+      'السرعة 3 سم/ث',
+      'درجة الحرارة °م',
+    ]) {
+      expect(flagged(text), `يجب أن تُلتقط: ${text}`).toBe(true)
+    }
   })
 
-  it('accepts English symbols and ordinary Arabic words', () => {
+  it('catches a number followed by an Arabic unit name (singular, dual, plural)', () => {
+    for (const text of [
+      'المسافة 100 متر',
+      'المسافة 100 متراً',
+      'الطول 25 سنتيمتراً',
+      'سمك الورقة 0.5 مليمتر',
+      'سار 3 كيلومترات',
+      'الكتلة 5 غرام',
+      'كتلة الجسم 2 كيلوغرامات',
+      'الحجم 2 لتر',
+      'الزمن 20 ثانية',
+      'بعد 5 ثوانٍ',
+      'انتظر 10 دقائق',
+      'رحلة 3 ساعات',
+      'القوة 10 نيوتن',
+      'الطاقة 30 جول',
+      'الاستطاعة 60 واط',
+      'الضغط 1000 باسكال',
+      'التردد 50 هرتز',
+      'الحرارة 25 درجة مئوية',
+      'المساحة 3 أمتار مكعبة',
+      'المسافة ٥ متر',
+      'كتلته 3 كجم',
+      'الطول 12 سم',
+      'الحجم 250 مل',
+    ]) {
+      expect(flagged(text), `يجب أن تُلتقط: ${text}`).toBe(true)
+    }
+  })
+
+  it('catches a unit name with NO number when the context marks a measurement', () => {
+    for (const text of [
+      'المسافة تُقاس بالمتر', // «بـ» = بوحدة
+      'الزمن يُقاس بالثانية',
+      'السرعة بوحدة الكيلومتر في الساعة',
+      'وحدة قياس الطول هي المتر',
+      'وحدة القياس: المتر',
+      'المسافة وحدتها المتر',
+      'المتر وحدة قياس الطول',
+      'الحجم باللتر',
+      'الكتلة بالكيلوغرام',
+      'المسافة (متر)',
+      'الزمن (ثانية)',
+      'وحدة الحرارة الدرجة المئوية',
+    ]) {
+      expect(flagged(text), `يجب أن تُلتقط: ${text}`).toBe(true)
+    }
+  })
+
+  it('catches a lone Arabic unit letter after a value or a tag', () => {
+    for (const text of ['<span>12</span> م', '${x} م', 'الزمن 20 ث', '(م)']) {
+      expect(flagged(text), `يجب أن تُلتقط: ${text}`).toBe(true)
+    }
+  })
+})
+
+describe('Arabic-unit detector: it stays quiet on ordinary Arabic', () => {
+  it('accepts English symbols and measurement-free prose', () => {
     for (const text of [
       'سرعة السيارة 5 m/s',
       'المسافة 100 m والزمن 20 s',
       'درجة الحرارة °C',
+      'كتلته 3 kg',
+      'الطول 12 cm',
+      'الحركة والسكون مفهومان نسبيان',
       'سيارة كبيرة تسير على طريق مستقيم',
-      'أثقال كبيرة وجهد صغير',
-      'عقرب الساعة يرسم دائرة',
-      'الدرس الأول من الوحدة الثانية',
+      'رفع أثقال كبيرة بجهد صغير',
+      'باسم الله الرحمن',
     ]) {
-      expect(findArabicUnits(text), `"${text}" يجب أن يُقبل`).toEqual([])
+      expect(
+        findArabicUnits(text),
+        `يجب ألّا تُعتبر مخالفة: ${text}`,
+      ).toEqual([])
       expect(hasArabicUnits(text)).toBe(false)
     }
+  })
+
+  it('does not mistake ordinals, clocks and adjectives for units', () => {
+    for (const text of [
+      'الدرس الأول من الوحدة الثانية',
+      'الوحدة الثانية: الضغط ودافعة أرخميدس',
+      'الوحدة الثالثة: المادة والحرارة',
+      'الدرجة الثانية',
+      'المرحلة الثانية من الدرس',
+      'المرة الثانية',
+      'عقرب الساعة يرسم دائرة',
+      'طرف عقرب الدقائق في الساعة',
+      'ملاحظة دقيقة وتفصيل واضح',
+      'قصة حب وغرام',
+      'النسبة المئوية للإنجاز',
+      'تقدّمك في وحدة الحركة والتحريك',
+    ]) {
+      expect(
+        findArabicUnits(text),
+        `يجب ألّا تُعتبر مخالفة: ${text}`,
+      ).toEqual([])
+    }
+  })
+
+  it('reports every offence with an actionable Arabic hint', () => {
+    const offences = findArabicUnits('المسافة تُقاس بالمتر')
+    expect(offences.length).toBeGreaterThan(0)
+    expect(offences[0].rule.hint).toMatch(/[؀-ۿ]/) // the hint is in Arabic
+    expect(offences[0].rule.why).toBeTruthy()
+    expect(describeOffence(offences[0])).toContain('بالمتر')
   })
 })

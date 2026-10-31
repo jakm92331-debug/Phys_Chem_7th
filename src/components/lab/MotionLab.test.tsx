@@ -4,6 +4,7 @@ import { MotionLab } from './MotionLab'
 import { ProgressProvider } from '@/state/progress'
 import { findArabicUnits } from '@/lib/content-standards'
 import type { LabMission } from '@/types/content'
+import { MATH_PROBE } from '@/test/probe'
 
 const MISSIONS: LabMission[] = [
   { id: 'motion-try-speeds', title: 'مجرّب السرعات', description: 'جرّب ثلاث سرعات', xp: 15 },
@@ -56,5 +57,31 @@ describe('MotionLab measurements', () => {
     const predict = screen.getByRole('region', { name: 'تحدّي التنبّؤ' })
     expect(predict.querySelector('.katex')).not.toBeNull()
     expect(findArabicUnits(predict.textContent ?? '')).toEqual([])
+  })
+})
+
+describe('MotionLab: mission copy is maths-aware', () => {
+  it('renders the mission title (and description) with KaTeX', () => {
+    const missions: LabMission[] = [
+      { id: 'm1', title: MATH_PROBE, description: MATH_PROBE, xp: 10 },
+      { id: 'm2', title: 'مهمة بلا رياضيات', description: 'وصف بلا رياضيات', xp: 10 },
+    ]
+    const { container } = render(
+      <ProgressProvider>
+        <MotionLab entryId="lesson-01-motion-rest" missions={missions} />
+      </ProgressProvider>,
+    )
+
+    const first = container.querySelectorAll('.lab-missions li')[0]
+    expect(first.querySelectorAll('.katex').length).toBeGreaterThanOrEqual(2)
+    expect(first.textContent).not.toContain('$')
+    expect(container.querySelectorAll('.math--error')).toHaveLength(0)
+    // mission copy lives inside inline elements → maths stays inline
+    expect(first.querySelectorAll('.math--block')).toHaveLength(0)
+
+    // a mission without maths renders as plain text
+    const second = container.querySelectorAll('.lab-missions li')[1]
+    expect(second.querySelectorAll('.katex')).toHaveLength(0)
+    expect(second.textContent).toContain('مهمة بلا رياضيات')
   })
 })
