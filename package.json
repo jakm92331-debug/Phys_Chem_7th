@@ -16,6 +16,7 @@
   "dependencies": {
     "@fontsource/alexandria": "^5.1.0",
     "@fontsource/readex-pro": "^5.1.0",
+    "katex": "^0.16.47",
     "lucide-react": "^0.462.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

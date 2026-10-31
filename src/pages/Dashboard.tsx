@@ -19,6 +19,7 @@ import { BADGE_ICONS, UNIT_ICONS } from '@/components/icons'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { ActionButton, LinkButton, ProgressBar, StatusChip } from '@/components/ui/ui'
 import { levelForXp, useProgress } from '@/state/progress'
+import { RichText } from '@/components/math/Math'
 import './Dashboard.css'
 
 const dateFmt = new Intl.DateTimeFormat('ar-u-nu-latn', {
@@ -227,8 +228,12 @@ export function DashboardPage() {
                           <Lock size={22} aria-hidden="true" />
                         )}
                       </span>
-                      <h3>{badge.title}</h3>
-                      <p>{earned ? badge.description : badge.condition}</p>
+                      <h3>
+                        <RichText text={badge.title} inlineOnly />
+                      </h3>
+                      <p>
+                        <RichText text={earned ? badge.description : badge.condition} />
+                      </p>
                       <span className="badge-card__state">
                         {earned ? 'حقّقتها!' : 'لم تُفتح بعد'}
                       </span>

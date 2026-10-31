@@ -1,0 +1,85 @@
+/**
+ * KaTeX inside an Arabic RTL page.
+ *
+ * Rules of the road:
+ *   • Every maths box is `dir="ltr"` + `unicode-bidi: isolate`, so the
+ *     expression keeps its correct internal order while the Arabic sentence
+ *     around it stays RTL — no mirroring of `=`, `/` or fraction bars.
+ *   • Inline maths is `inline-block` so it never inflates the Arabic line
+ *     height, and display maths scrolls inside its own box on narrow screens
+ *     instead of pushing the page into horizontal scroll.
+ *   • Unit symbols live in `.measure__unit` / `.unit` — always English, always
+ *     isolated, never wrapped away from their number.
+ */
+
+.math {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+  max-width: 100%;
+  color: inherit;
+  line-height: inherit;
+}
+
+.math--block {
+  display: block;
+  /* Scoped horizontal scroll: long expressions stay reachable on phones
+     without creating a page-level horizontal scrollbar. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-block: var(--sp-2);
+  padding-block: 2px;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.math .katex {
+  /* Slightly larger than the Arabic body text: maths fonts look small
+     next to Alexandria/Readex Pro. */
+  font-size: 1.06em;
+  color: inherit;
+  direction: ltr;
+}
+
+.math .katex-display {
+  margin: 0;
+}
+
+.math .katex-display > .katex {
+  text-align: initial;
+}
+
+/* Fallback when an expression cannot be parsed: show the source, never crash. */
+.math--error {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  border-radius: var(--r-sm);
+  background: var(--danger-soft);
+  color: var(--danger);
+  white-space: pre-wrap;
+}
+
+/* ——— Measurements (value + English unit symbol) ——— */
+
+.measure {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25em;
+  /* Keep «12 m/s» on one line: a broken measurement is a wrong measurement. */
+  white-space: nowrap;
+  unicode-bidi: isolate;
+}
+
+.measure__unit,
+.unit {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-weight: 700;
+}
+
+/* Inside dark panels (lab, formula card) the symbol takes the local colour. */
+.cb-formula .measure__unit,
+.motion-lab .measure__unit {
+  color: inherit;
+}

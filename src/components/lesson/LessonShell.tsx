@@ -15,6 +15,7 @@ import type { CurriculumEntry, LessonContent, LessonStageId, Unit } from '@/type
 import { LESSON_STAGES, getAdjacentEntries } from '@/data/curriculum'
 import { useProgress } from '@/state/progress'
 import { ActionButton, ProgressBar } from '@/components/ui/ui'
+import { RichText } from '@/components/math/Math'
 import { ContentBlocks } from './ContentBlocks'
 import { CheckSet, QuizSet } from './QuestionSet'
 import { getLab } from '@/components/lab/registry'
@@ -145,8 +146,12 @@ export function LessonShell({
                     {done ? <Check size={16} /> : <span className="num">{i + 1}</span>}
                   </span>
                   <span className="stage-btn__text">
-                    <span className="stage-btn__title">{stage.title}</span>
-                    <span className="stage-btn__desc">{stage.description}</span>
+                    <span className="stage-btn__title">
+                      <RichText text={stage.title} inlineOnly />
+                    </span>
+                    <span className="stage-btn__desc">
+                      <RichText text={stage.description} inlineOnly />
+                    </span>
                   </span>
                 </button>
               </li>
@@ -167,8 +172,12 @@ export function LessonShell({
               </span>
             )}
           </p>
-          <h2 className="stage-panel__title">{activeMeta.title}</h2>
-          <p className="stage-panel__desc">{activeMeta.description}</p>
+          <h2 className="stage-panel__title">
+            <RichText text={activeMeta.title} />
+          </h2>
+          <p className="stage-panel__desc">
+            <RichText text={activeMeta.description} />
+          </p>
         </header>
 
         {activeStage === 'hook' && (
@@ -180,12 +189,18 @@ export function LessonShell({
               }}
             >
               <Sparkles size={26} aria-hidden="true" />
-              <p>{content.hook.question}</p>
+              <p>
+                <RichText text={content.hook.question} />
+              </p>
             </div>
-            <p className="hook-scenario">{content.hook.scenario}</p>
+            <p className="hook-scenario">
+              <RichText text={content.hook.scenario} />
+            </p>
             <aside className="hook-challenge">
               <Target size={20} aria-hidden="true" />
-              <p>{content.hook.challenge}</p>
+              <p>
+                <RichText text={content.hook.challenge} />
+              </p>
             </aside>
             <div className="hook-objectives">
               <h3>في نهاية هذا الدرس، سأستطيع أن:</h3>
@@ -193,7 +208,7 @@ export function LessonShell({
                 {content.objectives.map((obj) => (
                   <li key={obj}>
                     <CheckCircle2 size={18} aria-hidden="true" />
-                    {obj}
+                    <RichText text={obj} />
                   </li>
                 ))}
               </ul>
@@ -222,7 +237,11 @@ export function LessonShell({
 
         {activeStage === 'lab' && (
           <div className="stage-body">
-            {content.labGuide && <p className="lab-intro">{content.labGuide.intro}</p>}
+            {content.labGuide && (
+              <p className="lab-intro">
+                <RichText text={content.labGuide.intro} />
+              </p>
+            )}
             {LabComponent && content.labGuide ? (
               <LabComponent entryId={entry.id} missions={content.labGuide.missions} />
             ) : (
@@ -295,7 +314,9 @@ export function LessonShell({
                     <span className="num" aria-hidden="true">
                       {i + 1}
                     </span>
-                    <p>{idea}</p>
+                    <p>
+                      <RichText text={idea} />
+                    </p>
                   </li>
                 ))}
               </ol>
@@ -308,8 +329,12 @@ export function LessonShell({
               <dl>
                 {content.summary.vocabulary.map((v) => (
                   <div key={v.term}>
-                    <dt>{v.term}</dt>
-                    <dd>{v.meaning}</dd>
+                    <dt>
+                      <RichText text={v.term} inlineOnly />
+                    </dt>
+                    <dd>
+                      <RichText text={v.meaning} />
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -319,7 +344,9 @@ export function LessonShell({
               <Sparkles size={22} aria-hidden="true" />
               <div>
                 <strong>تذكّر دائماً:</strong>
-                <p>{content.summary.remember}</p>
+                <p>
+                  <RichText text={content.summary.remember} />
+                </p>
               </div>
             </aside>
 

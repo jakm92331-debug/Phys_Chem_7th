@@ -6,6 +6,12 @@ import { cleanup } from '@testing-library/react'
 window.scrollTo = vi.fn()
 Element.prototype.scrollIntoView = vi.fn()
 
+// jsdom ships no canvas backend. The labs draw only when a 2D context exists,
+// so a null context is a supported (and silent) path in tests.
+HTMLCanvasElement.prototype.getContext = vi.fn(
+  () => null,
+) as unknown as HTMLCanvasElement['getContext']
+
 // matchMedia is used by useReducedMotion.
 if (!window.matchMedia) {
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({

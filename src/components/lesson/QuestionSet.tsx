@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { CheckCircle2, Lightbulb, RotateCcw, Send, XCircle } from 'lucide-react'
 import type { QuizQuestion } from '@/types/content'
 import { ActionButton, ProgressBar } from '@/components/ui/ui'
+import { RichText } from '@/components/math/Math'
 import './QuestionSet.css'
 
 const DIFFICULTY_LABEL: Record<QuizQuestion['difficulty'], string> = {
@@ -44,7 +45,9 @@ function CheckQuestion({
     <fieldset className={`q-card${solved ? ' is-solved' : ''}`}>
       <legend className="q-card__legend">
         <span className="q-card__num num">{index + 1}</span>
-        <span className="q-card__prompt">{question.prompt}</span>
+        <span className="q-card__prompt">
+          <RichText text={question.prompt} inlineOnly />
+        </span>
         <span className={`q-diff q-diff--${question.difficulty}`}>
           {DIFFICULTY_LABEL[question.difficulty]}
         </span>
@@ -76,7 +79,9 @@ function CheckQuestion({
                   <span className="num">{i + 1}</span>
                 )}
               </span>
-              <span>{choice}</span>
+              <span>
+                <RichText text={choice} inlineOnly />
+              </span>
             </label>
           )
         })}
@@ -88,7 +93,12 @@ function CheckQuestion({
             <Lightbulb size={18} aria-hidden="true" />
             <span>
               ليست الإجابة الصحيحة — جرّب مجدّداً.
-              {question.misconception && <> تلميح: {question.misconception}</>}
+              {question.misconception && (
+                <>
+                  {' '}
+                  تلميح: <RichText text={question.misconception} inlineOnly />
+                </>
+              )}
             </span>
           </p>
         )}
@@ -96,7 +106,7 @@ function CheckQuestion({
           <p className="q-feedback q-feedback--right">
             <CheckCircle2 size={18} aria-hidden="true" />
             <span>
-              <strong>إجابة صحيحة!</strong> {question.explanation}
+              <strong>إجابة صحيحة!</strong> <RichText text={question.explanation} inlineOnly />
             </span>
           </p>
         )}
@@ -229,7 +239,9 @@ export function QuizSet({
           >
             <legend className="q-card__legend">
               <span className="q-card__num num">{qi + 1}</span>
-              <span className="q-card__prompt">{q.prompt}</span>
+              <span className="q-card__prompt">
+                <RichText text={q.prompt} inlineOnly />
+              </span>
               <span className={`q-diff q-diff--${q.difficulty}`}>
                 {DIFFICULTY_LABEL[q.difficulty]}
               </span>
@@ -267,7 +279,9 @@ export function QuizSet({
                         <span className="num">{i + 1}</span>
                       )}
                     </span>
-                    <span>{choice}</span>
+                    <span>
+                      <RichText text={choice} inlineOnly />
+                    </span>
                   </label>
                 )
               })}
@@ -282,8 +296,13 @@ export function QuizSet({
                 )}
                 <span>
                   <strong>{isRight ? 'صحيحة. ' : 'ليست صحيحة. '}</strong>
-                  {q.explanation}
-                  {!isRight && q.misconception && <> تنبيه: {q.misconception}</>}
+                  <RichText text={q.explanation} inlineOnly />
+                  {!isRight && q.misconception && (
+                    <>
+                      {' '}
+                      تنبيه: <RichText text={q.misconception} inlineOnly />
+                    </>
+                  )}
                 </span>
               </div>
             )}

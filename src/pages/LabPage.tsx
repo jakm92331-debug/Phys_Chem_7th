@@ -4,6 +4,7 @@ import { getLessonContent } from '@/data/lessons'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { SourceBadge } from '@/components/ui/ui'
 import { MotionLab } from '@/components/lab/MotionLab'
+import { RichText } from '@/components/math/Math'
 import './LabPage.css'
 
 const FUTURE_LABS = [
@@ -78,9 +79,15 @@ export function LabPage() {
                 <span className="future-card__icon">
                   <lab.icon size={26} aria-hidden="true" />
                 </span>
-                <h3>{lab.title}</h3>
-                <p className="future-card__unit">{lab.unit}</p>
-                <p>{lab.text}</p>
+                <h3>
+                  <RichText text={lab.title} inlineOnly />
+                </h3>
+                <p className="future-card__unit">
+                  <RichText text={lab.unit} inlineOnly />
+                </p>
+                <p>
+                  <RichText text={lab.text} />
+                </p>
                 <span className="future-card__state">
                   <SourceBadge status="pending" />
                 </span>

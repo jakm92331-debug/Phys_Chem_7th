@@ -17,6 +17,7 @@ import { ALL_ENTRIES, TOTAL_LESSONS, TOTAL_PROJECTS, UNITS } from '@/data/curric
 import { UnitCard } from '@/components/curriculum/cards'
 import { LinkButton, ProgressBar, SectionHeading, SourceBadge } from '@/components/ui/ui'
 import { levelForXp, useProgress } from '@/state/progress'
+import { Measure } from '@/components/math/Math'
 import './Home.css'
 
 /** Decorative science scene for the hero (pure SVG, aria-hidden). */
@@ -296,7 +297,7 @@ export function HomePage() {
               </li>
               <li>
                 <Crosshair size={19} aria-hidden="true" />
-                تحدّي تنبّؤ: أين ستكون السيارة بعد ثوانٍ؟
+                تحدّي تنبّؤ: أين ستكون السيارة بعد مدّة قصيرة؟
               </li>
               <li>
                 <Target size={19} aria-hidden="true" />
@@ -312,7 +313,7 @@ export function HomePage() {
             <div className="fake-gauge">
               <span className="fake-gauge__label">سرعة السيارة الحمراء</span>
               <span className="fake-gauge__value">
-                <span className="num">12</span> م/ث
+                <Measure value={12} unit="metresPerSecond" digits={0} />
               </span>
               <div className="fake-gauge__track">
                 <div className="fake-gauge__fill" style={{ width: '60%' }} />
@@ -321,7 +322,7 @@ export function HomePage() {
             <div className="fake-gauge">
               <span className="fake-gauge__label">سرعة السيارة الزرقاء (المرجع)</span>
               <span className="fake-gauge__value">
-                <span className="num">12</span> م/ث
+                <Measure value={12} unit="metresPerSecond" digits={0} />
               </span>
               <div className="fake-gauge__track">
                 <div className="fake-gauge__fill fake-gauge__fill--blue" style={{ width: '60%' }} />

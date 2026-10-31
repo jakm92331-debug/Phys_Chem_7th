@@ -1,3 +1,5 @@
+import { formatNumber } from './units'
+
 /**
  * Pure physics helpers for the «الحركة والسكون» interactive laboratory.
  *
@@ -89,8 +91,10 @@ export function checkPrediction(
   return { correct: error <= tolerance, error }
 }
 
-/** Formats a measurement with up to one decimal place, trimming trailing .0 */
+/**
+ * Formats a measurement with up to one decimal place, trimming trailing .0.
+ * Delegates to the shared formatter so every screen rounds measurements alike.
+ */
 export function formatMeasure(value: number): string {
-  const rounded = Math.round(value * 10) / 10
-  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1)
+  return formatNumber(value)
 }
