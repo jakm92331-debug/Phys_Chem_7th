@@ -179,3 +179,46 @@ describe('lesson registry', () => {
     )
   })
 })
+
+
+describe('lesson content: use vertical fractions for mathematical division', () => {
+  it('rejects raw slash division in every registered law and LaTeX expression, while allowing compound units', () => {
+    const failures: string[] = []
+    for (const lesson of LESSONS) {
+      const expressions = [
+        ...lawsOf(lesson).map(law => law.tex),
+        ...stringsIn(lesson).flatMap(({ text }) => splitMath(text).filter(segment => segment.type !== 'text').map(segment => segment.value)),
+      ]
+      for (const tex of expressions) {
+        const withoutUnits = tex.replace(/\\(?:mathrm|text)\{[^{}]*\}/g, '')
+        if (withoutUnits.includes('/')) failures.push(`${lesson.entryId}: ${tex}`)
+      }
+    }
+    expect(failures).toEqual([])
+  })
+})
+
+/** Plain prose division is also forbidden; compound SI unit slashes are not division. */
+function hasPlainSlashDivision(text: string): boolean {
+  const withoutUnits = text.replace(/(?<![A-Za-z])(km\/h|m\/s²|m\/s)(?![A-Za-z²])/g, '')
+  return /[A-Za-z0-9)]\s*\/\s*[A-Za-z0-9(]/.test(withoutUnits)
+}
+
+describe('lesson content: no unmarked slash division in prose', () => {
+  it('distinguishes division from compound units', () => {
+    expect(hasPlainSlashDivision('v = d/t')).toBe(true)
+    expect(hasPlainSlashDivision('20/5')).toBe(true)
+    expect(hasPlainSlashDivision('5 m/s و 20 km/h')).toBe(false)
+  })
+  it('checks every registered lesson', () => {
+    const failures: string[] = []
+    for (const lesson of LESSONS) {
+      for (const { path, text } of stringsIn(lesson)) {
+        for (const segment of splitMath(text)) {
+          if (segment.type === 'text' && hasPlainSlashDivision(segment.value)) failures.push(`${path}: ${segment.value}`)
+        }
+      }
+    }
+    expect(failures).toEqual([])
+  })
+})

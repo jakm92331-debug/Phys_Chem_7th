@@ -47,6 +47,7 @@ const KATEX_OPTIONS = {
 export function renderTex(tex: string, displayMode = false): TexResult {
   try {
     return {
+      // Respect KaTeX text style inline; authors can opt into \dfrac locally.
       html: katex.renderToString(tex, { ...KATEX_OPTIONS, displayMode }),
     }
   } catch (error) {

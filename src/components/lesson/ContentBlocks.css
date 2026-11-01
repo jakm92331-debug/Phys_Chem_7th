@@ -150,6 +150,9 @@
   font-size: var(--fs-sm);
   color: var(--text-on-dark-muted);
 }
+.cb-formula__unit {
+  margin-inline-start: 0.35em;
+}
 .cb-formula__symbols strong {
   color: var(--gold);
   font-family: var(--font-display);

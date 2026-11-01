@@ -6,6 +6,7 @@ import {
   type UnitKey,
   type UnitSymbol,
   UNITS,
+  splitQuantities,
 } from '@/lib/units'
 import 'katex/dist/katex.min.css'
 import './Math.css'
@@ -75,11 +76,11 @@ export function BlockMath({ tex, className, label }: Omit<Parameters<typeof Tex>
 
 /**
  * Renders a string of Arabic prose that may contain `$…$` (inline) and
- * `$$…$$` (display) LaTeX. Strings without maths are returned untouched, so
- * plain text keeps its normal text nodes (and stays matchable in tests).
+ * `$$…$$` (display) LaTeX. Plain registered quantities are also recognised and rendered as isolated KaTeX.
+ * Other plain text retains its normal text nodes.
  *
- * EVERY content string shown to a student must pass through this component —
- * that is what guarantees no maths can reach the screen unrendered.
+ * Pass student-facing lesson strings through this component. Authors must
+ * delimit expressions as LaTeX; only registered plain quantities are inferred.
  *
  * `inlineOnly` is for strings that live inside an inline element (a term, a
  * title, a table cell, a choice label): display maths is still rendered by
@@ -99,7 +100,7 @@ export function RichText({
   inlineOnly?: boolean
 }) {
   const segments = splitMath(text)
-  const isPlain = segments.every((s) => s.type === 'text')
+  const isPlain = segments.every((s) => s.type === 'text' && splitQuantities(s.value).every((part) => part.type === 'text'))
 
   if (isPlain) {
     const content = segments.map((s) => s.value).join('')
@@ -108,7 +109,9 @@ export function RichText({
 
   const content = segments.map((segment, i) =>
     segment.type === 'text' ? (
-      <span key={i}>{segment.value}</span>
+      <span key={i}>{splitQuantities(segment.value).map((part, j) =>
+        part.type === 'text' ? part.value : <Quantity key={j} value={part.value} symbol={part.symbol} />,
+      )}</span>
     ) : (
       <Tex key={i} tex={segment.value} display={!inlineOnly && segment.type === 'block'} />
     ),
@@ -153,13 +156,16 @@ export function Measure({
   digits?: number
   className?: string
 }) {
-  const symbol = resolveSymbol(unit)
+  return <Quantity value={formatNumber(value, digits)} symbol={resolveSymbol(unit)} className={className} />
+}
+
+/** Render the entire quantity as one isolated KaTeX expression. */
+function Quantity({ value, symbol, className = '' }: { value: string; symbol: string; className?: string }) {
   return (
-    <span className={`measure ${className}`.trim()}>
-      <span className="num">{formatNumber(value, digits)}</span>{' '}
-      <span className="measure__unit" dir="ltr">
-        {symbol}
-      </span>
-    </span>
+    <Tex
+      tex={`${value}\\ \\text{${symbol}}`}
+      className={`measure ${className}`.trim()}
+      label={`${value} ${symbol}`}
+    />
   )
 }

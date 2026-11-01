@@ -56,6 +56,19 @@ describe('renderTex', () => {
     expect(block.html).toContain('katex-display')
   })
 
+  it('preserves normal inline style and lets authors choose a display-sized fraction', () => {
+    const simple = renderTex('v = d + t').html
+    const fraction = renderTex('v = \\frac{d}{t}').html
+    const largeFraction = renderTex('v = \\dfrac{d}{t}').html
+    expect(simple).not.toContain('\\displaystyle')
+    expect(fraction).not.toContain('\\displaystyle')
+    expect(simple).toContain('v = d + t</annotation>')
+    expect(fraction).toContain('<mfrac>')
+    expect(largeFraction).toContain('<mfrac>')
+    expect(fraction).not.toContain('displaystyle="true"')
+    expect(largeFraction).toContain('displaystyle="true"')
+  })
+
   it('ships MathML so screen readers can read the expression', () => {
     const { html } = renderTex('v = \\frac{d}{t}')
     expect(html).toContain('<math')
