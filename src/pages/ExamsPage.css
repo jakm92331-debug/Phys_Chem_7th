@@ -1,0 +1,189 @@
+/* Exams listing page — «الاختبارات» */
+
+.exams-body {
+  padding-block: var(--sp-10) var(--sp-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-12);
+}
+
+.exams-unit {
+  position: relative;
+  overflow: hidden;
+}
+
+.exams-unit__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-6);
+}
+
+.exams-unit__icon {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-lg);
+  background: linear-gradient(135deg, var(--unit-primary), var(--unit-secondary));
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.exams-unit__titles {
+  flex: 1;
+}
+
+.exams-unit__kicker {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--unit-primary);
+}
+
+.exams-unit__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.exams-unit__motif {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 300px;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.exams-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.exams-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5) var(--sp-6);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.exams-card:hover {
+  border-color: var(--unit-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.exams-card__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.exams-card__type {
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  color: var(--unit-primary);
+  background: var(--unit-soft);
+  border-radius: var(--r-full);
+  padding: 0.2rem 0.7rem;
+  align-self: flex-start;
+}
+
+.exams-card__main strong {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.exams-card__sub {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+.exams-card__side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.exams-card__score {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.exams-card__score--new {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--text-faint);
+  font-size: var(--fs-xs);
+}
+
+.exams-empty {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  background: var(--surface);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-lg);
+  padding: var(--sp-6);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.exams-rule {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: var(--sp-5) 0 0;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--warning-soft);
+  border: 1px solid rgb(217 119 6 / 0.25);
+  border-radius: var(--r-md);
+  color: var(--warning);
+  font-size: var(--fs-sm);
+}
+
+.exams-foot {
+  display: flex;
+  justify-content: center;
+}
+
+/* shared states */
+.exam-missing {
+  padding-block: var(--sp-16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  text-align: center;
+}
+
+.exam-missing h1 {
+  font-family: var(--font-display);
+  color: var(--text-strong);
+}
+
+.exam-missing p {
+  color: var(--text-muted);
+  margin: 0;
+}

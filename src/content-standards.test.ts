@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { resolve, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { findArabicUnits } from '@/lib/content-standards'
+import { findArabicUnits, hasArabicUnits } from '@/lib/content-standards'
 
 /**
  * Repo-wide guard for the two permanent content standards:
@@ -80,5 +80,79 @@ describe('platform standard: KaTeX for mathematics', () => {
     // … and its stylesheet is bundled by the shared component.
     expect(mathComponent).toContain("katex/dist/katex.min.css")
     expect(mathComponent).toContain("@/lib/tex")
+  })
+})
+
+import type { LessonContent } from '@/types/content'
+import { checkBlockOrigins } from '@/lib/content-standards'
+
+describe('checkBlockOrigins: textbook content vs enrichment', () => {
+  const base: LessonContent = {
+    entryId: 'lesson-x',
+    source: 'textbook-verified',
+    hook: { question: 'q', scenario: 's', challenge: 'c' },
+    objectives: [],
+    discover: [],
+    checkQuestions: [],
+    apply: [],
+    quiz: [],
+    summary: { keyIdeas: [], vocabulary: [], remember: '' },
+  }
+
+  it('accepts a textbook block that carries its page number', () => {
+    const content: LessonContent = {
+      ...base,
+      discover: [
+        { kind: 'text', text: 'نصّ من الكتاب', origin: { kind: 'textbook', page: 12 } },
+      ],
+    }
+    expect(checkBlockOrigins(content)).toEqual([])
+  })
+
+  it('rejects a textbook block without a page number', () => {
+    const content: LessonContent = {
+      ...base,
+      discover: [{ kind: 'text', text: 'نصّ من الكتاب', origin: { kind: 'enrichment' } }],
+      apply: [{ kind: 'text', text: 'بدون صفحة', origin: { kind: 'textbook' } as never }],
+    }
+    const violations = checkBlockOrigins(content)
+    expect(violations.length).toBe(1)
+    expect(violations[0].problem).toContain('رقم صفحة')
+  })
+
+  it('never lets a demonstration lesson claim textbook origin', () => {
+    const content: LessonContent = {
+      ...base,
+      source: 'demo-supplementary',
+      discover: [{ kind: 'text', text: 'إثراء', origin: { kind: 'textbook', page: 3 } }],
+    }
+    const violations = checkBlockOrigins(content)
+    expect(violations.length).toBe(1)
+    expect(violations[0].problem).toContain('توضيحي')
+  })
+
+  it('treats blocks without an origin as enrichment (no violation)', () => {
+    const content: LessonContent = {
+      ...base,
+      discover: [{ kind: 'text', text: 'إثراء بلا وسم' }],
+    }
+    expect(checkBlockOrigins(content)).toEqual([])
+  })
+})
+
+describe('detector precision: unit words inside larger Arabic words', () => {
+  it('does not flag «جم» inside «جميع» before a measurement cue', () => {
+    // regression: the abbreviation «جم» (gram) is a substring of «جميع»
+    expect(hasArabicUnits('تضمّ جميع دروس وحدة الحركة والتحريك')).toBe(false)
+  })
+
+  it('still flags a real unit before a measurement cue', () => {
+    expect(hasArabicUnits('المتر وحدة القياس الصحيحة')).toBe(true)
+    expect(hasArabicUnits('الكيلوغرام وحدة قياس الكتلة')).toBe(true)
+  })
+
+  it('still flags an abbreviation as a unit when it stands alone', () => {
+    expect(hasArabicUnits('(جم) وحدة القياس')).toBe(true)
+    expect(hasArabicUnits('20 جم وحدة القياس')).toBe(true)
   })
 })

@@ -1,5 +1,5 @@
 import { AlertTriangle, BookOpenText, HelpCircle, Lightbulb, Sigma } from 'lucide-react'
-import type { ContentBlock } from '@/types/content'
+import type { BlockOrigin, ContentBlock } from '@/types/content'
 import { RichText, Tex } from '@/components/math/Math'
 import { mathToPlainText } from '@/lib/tex'
 import './ContentBlocks.css'
@@ -10,6 +10,22 @@ const CALLOUT_ICON = {
   example: BookOpenText,
   warning: AlertTriangle,
 } as const
+
+/**
+ * The provenance tag. Only blocks explicitly marked `{ kind: 'textbook' }`
+ * carry it: it states the book page the content was carried over from.
+ * Everything else in a lesson is platform enrichment and never claims to be
+ * from the book (see docs/CONTENT_STANDARDS.md).
+ */
+function OriginTag({ origin }: { origin: BlockOrigin }) {
+  if (origin.kind !== 'textbook') return null
+  return (
+    <span className="cb-origin" role="note">
+      <BookOpenText size={12} aria-hidden="true" /> من الكتاب · صفحة{' '}
+      <span className="num">{origin.page}</span>
+    </span>
+  )
+}
 
 function Block({ block }: { block: ContentBlock }) {
   switch (block.kind) {
@@ -24,6 +40,7 @@ function Block({ block }: { block: ContentBlock }) {
       return (
         <p className="cb-text">
           <RichText text={block.text} />
+          {block.origin && <OriginTag origin={block.origin} />}
         </p>
       )
 
@@ -36,6 +53,7 @@ function Block({ block }: { block: ContentBlock }) {
           <p>
             <RichText text={block.text} />
           </p>
+          {block.origin && <OriginTag origin={block.origin} />}
         </div>
       )
 
@@ -55,6 +73,7 @@ function Block({ block }: { block: ContentBlock }) {
             <p>
               <RichText text={block.text} />
             </p>
+            {block.origin && <OriginTag origin={block.origin} />}
           </div>
         </aside>
       )
@@ -99,67 +118,76 @@ function Block({ block }: { block: ContentBlock }) {
     case 'list': {
       const ListTag = block.ordered ? 'ol' : 'ul'
       return (
-        <ListTag className={`cb-list${block.ordered ? ' cb-list--ordered' : ''}`}>
-          {block.items.map((item, i) => (
-            <li key={i}>
-              <RichText text={item} />
-            </li>
-          ))}
-        </ListTag>
+        <>
+          <ListTag className={`cb-list${block.ordered ? ' cb-list--ordered' : ''}`}>
+            {block.items.map((item, i) => (
+              <li key={i}>
+                <RichText text={item} />
+              </li>
+            ))}
+          </ListTag>
+          {block.origin && <OriginTag origin={block.origin} />}
+        </>
       )
     }
 
     case 'compare':
       return (
-        <div
-          className="cb-compare"
-          role="table"
-          aria-label={`مقارنة بين ${mathToPlainText(block.leftTitle)} و ${mathToPlainText(block.rightTitle)}`}
-        >
-          <div className="cb-compare__row cb-compare__row--head" role="row">
-            <span role="columnheader">وجه المقارنة</span>
-            <span role="columnheader">
-              <RichText text={block.leftTitle} inlineOnly />
-            </span>
-            <span role="columnheader">
-              <RichText text={block.rightTitle} inlineOnly />
-            </span>
-          </div>
-          {block.rows.map((row) => (
-            <div key={row.label} className="cb-compare__row" role="row">
-              <span className="cb-compare__label" role="rowheader">
-                <RichText text={row.label} inlineOnly />
+        <>
+          <div
+            className="cb-compare"
+            role="table"
+            aria-label={`مقارنة بين ${mathToPlainText(block.leftTitle)} و ${mathToPlainText(block.rightTitle)}`}
+          >
+            <div className="cb-compare__row cb-compare__row--head" role="row">
+              <span role="columnheader">وجه المقارنة</span>
+              <span role="columnheader">
+                <RichText text={block.leftTitle} inlineOnly />
               </span>
-              <span role="cell">
-                <RichText text={row.left} inlineOnly />
-              </span>
-              <span role="cell">
-                <RichText text={row.right} inlineOnly />
+              <span role="columnheader">
+                <RichText text={block.rightTitle} inlineOnly />
               </span>
             </div>
-          ))}
-        </div>
+            {block.rows.map((row) => (
+              <div key={row.label} className="cb-compare__row" role="row">
+                <span className="cb-compare__label" role="rowheader">
+                  <RichText text={row.label} inlineOnly />
+                </span>
+                <span role="cell">
+                  <RichText text={row.left} inlineOnly />
+                </span>
+                <span role="cell">
+                  <RichText text={row.right} inlineOnly />
+                </span>
+              </div>
+            ))}
+          </div>
+          {block.origin && <OriginTag origin={block.origin} />}
+        </>
       )
 
     case 'steps':
       return (
-        <ol className="cb-steps">
-          {block.steps.map((step, i) => (
-            <li key={step.title} className="cb-step">
-              <span className="cb-step__num num" aria-hidden="true">
-                {i + 1}
-              </span>
-              <div>
-                <p className="cb-step__title">
-                  <RichText text={step.title} inlineOnly />
-                </p>
-                <p>
-                  <RichText text={step.text} />
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <>
+          <ol className="cb-steps">
+            {block.steps.map((step, i) => (
+              <li key={step.title} className="cb-step">
+                <span className="cb-step__num num" aria-hidden="true">
+                  {i + 1}
+                </span>
+                <div>
+                  <p className="cb-step__title">
+                    <RichText text={step.title} inlineOnly />
+                  </p>
+                  <p>
+                    <RichText text={step.text} />
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          {block.origin && <OriginTag origin={block.origin} />}
+        </>
       )
   }
 }

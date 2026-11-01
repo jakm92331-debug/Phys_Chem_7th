@@ -287,6 +287,10 @@ export function getEntryBySlug(slug: string): CurriculumEntry | undefined {
   return ALL_ENTRIES.find((e) => e.slug === slug)
 }
 
+export function getEntryById(id: string): CurriculumEntry | undefined {
+  return ALL_ENTRIES.find((e) => e.id === id)
+}
+
 export function getUnitForEntry(entry: CurriculumEntry): Unit {
   const found = UNITS.find((u) => u.id === entry.unitId)
   if (!found) throw new Error(`Unit not found for entry ${entry.id}`)

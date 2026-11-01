@@ -1,3 +1,5 @@
+import type { BlockOrigin, ContentBlock, LessonContent } from '@/types/content'
+
 /**
  * Machine-checkable authoring standards for platform content.
  *
@@ -8,6 +10,10 @@
  *      («متر», «ثانية»…) and never Arabic abbreviations («م/ث», «كم/ساعة»).
  *   2. Mathematical expressions are authored as LaTeX and rendered with
  *      KaTeX (`$…$` inline, `$$…$$` display, `tex` field on formula blocks).
+ *
+ * A third, structural rule: the permanent separation between textbook
+ * content and educational enrichment (see `checkBlockOrigins` below and
+ * `docs/CONTENT_STANDARDS.md`).
  *
  * This module is the single place where "what counts as an Arabic unit" is
  * defined, so a new lesson cannot silently reintroduce one: add the content,
@@ -146,8 +152,12 @@ export const ARABIC_UNIT_RULES: UnitRule[] = [
   },
   {
     id: 'unit-before-measure-cue',
+    // The unit word must not be a substring of a larger Arabic word:
+    // «جم» (gram) inside «جميع», «سم» inside «سمع»… are false alarms.
+    // (The same reasoning already guards the other rules via WORD_END.)
     pattern: new RegExp(
-      `${WORD_START}(?:ال)?${group(CONTEXT_UNIT_WORDS)}${TAIL}[^.\\n؛]{0,30}?(?:وحدة|وحدات|للقياس)`,
+      `${WORD_START}(?:ال)?${group(CONTEXT_UNIT_WORDS)}${TAIL}(?![\\p{L}\\p{N}])` +
+        `[^.\\n؛]{0,30}?(?:وحدة|وحدات|للقياس)`,
       'gu',
     ),
     hint: 'اسم وحدة عربي قبل كلمة «وحدة/للقياس» — استعمل الرمز الإنكليزي',
@@ -222,4 +232,63 @@ export function hasArabicUnits(text: string): boolean {
 /** Human-readable report — used by the guard test failure message. */
 export function describeOffence(offence: ArabicUnitOffence): string {
   return `${offence.rule.id}: «${offence.match}» → ${offence.rule.hint} (${offence.rule.why})`
+}
+
+/* ------------------------------------------------------------------ */
+/* Textbook vs enrichment separation                                    */
+/* ------------------------------------------------------------------ */
+
+export interface OriginViolation {
+  /** Where the offending block sits. */
+  block: string
+  problem: string
+}
+
+/** Content-block kinds that can carry an `origin` field. */
+const ORIGIN_BLOCK_KINDS = new Set<ContentBlock['kind']>([
+  'text',
+  'definition',
+  'callout',
+  'list',
+  'compare',
+  'steps',
+])
+
+/**
+ * Checks the permanent separation between textbook content and educational
+ * enrichment:
+ *
+ *   - a block claiming `{ kind: 'textbook' }` must carry a real page number
+ *     (the book page the quote came from);
+ *   - a lesson whose editorial status is `demo-supplementary` may not claim
+ *     any textbook origin at all — its content is enrichment by construction
+ *     and has not been verified against the book;
+ *   - blocks without an `origin` field are enrichment (the default) and are
+ *     never attributed to the book.
+ */
+export function checkBlockOrigins(content: LessonContent): OriginViolation[] {
+  const violations: OriginViolation[] = []
+  const blocks: ContentBlock[] = [...content.discover, ...content.apply]
+
+  blocks.forEach((block, i) => {
+    if (!ORIGIN_BLOCK_KINDS.has(block.kind)) return
+    const origin: BlockOrigin | undefined = 'origin' in block ? block.origin : undefined
+    if (!origin || origin.kind !== 'textbook') return
+
+    const where = `${block.kind}#${i}`
+    if (content.source === 'demo-supplementary') {
+      violations.push({
+        block: where,
+        problem:
+          'درس توضيحي لا يمكنه ادعاء نسبه إلى الكتاب (لم يُطابَق مع صفحات الكتاب)',
+      })
+    } else if (!Number.isInteger(origin.page) || origin.page < 1) {
+      violations.push({
+        block: where,
+        problem: 'محتوى مُنسَب للكتاب بلا رقم صفحة موثَّق',
+      })
+    }
+  })
+
+  return violations
 }

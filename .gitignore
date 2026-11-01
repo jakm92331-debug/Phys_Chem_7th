@@ -23,3 +23,6 @@ coverage
 .env
 .env.*
 !.env.example
+
+# teacher intake working file (the filled solution document)
+teacher-solutions.intake.json

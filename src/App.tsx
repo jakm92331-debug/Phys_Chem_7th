@@ -6,6 +6,8 @@ import { CurriculumPage } from '@/pages/Curriculum'
 import { LessonPage } from '@/pages/LessonPage'
 import { LabPage } from '@/pages/LabPage'
 import { DashboardPage } from '@/pages/Dashboard'
+import { ExamsPage } from '@/pages/ExamsPage'
+import { ExamPage } from '@/pages/ExamPage'
 import { TeacherPage } from '@/pages/TeacherPage'
 import { NotFoundPage } from '@/pages/NotFound'
 
@@ -26,6 +28,8 @@ export default function App() {
             <Route path="/lesson/:slug" element={<LessonPage />} />
             <Route path="/lab" element={<LabPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/exams" element={<ExamsPage />} />
+            <Route path="/exam/:id" element={<ExamPage />} />
             <Route path="/teacher" element={<TeacherPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

@@ -11,8 +11,11 @@
     "lint": "eslint .",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
+    "test:server": "node --test server/test/*.test.js",
     "test:watch": "vitest",
-    "test:laptop": "node e2e/laptop.mjs"
+    "test:laptop": "node e2e/laptop.mjs",
+    "server": "node server/index.js",
+    "hash:password": "node scripts/hash-password.mjs"
   },
   "dependencies": {
     "@fontsource/alexandria": "^5.1.0",

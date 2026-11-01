@@ -30,9 +30,25 @@ export default defineConfig({
     host: '0.0.0.0',
     // Allow proxied preview hosts (e.g. cloud dev environments) in dev only.
     allowedHosts: true,
+    // Forward teacher API calls to the authenticated Node server (when it is
+    // running) so the SPA talks to it over same-origin relative URLs.
+    // The target can be overridden with TEACHER_SERVER_URL (e2e tests).
+    proxy: {
+      '/api/teacher': {
+        target: process.env.TEACHER_SERVER_URL ?? 'http://localhost:8787',
+        changeOrigin: true,
+      },
+    },
   },
   preview: {
     host: '0.0.0.0',
     allowedHosts: true,
+    // Same proxy in preview so the built app reaches the teacher server.
+    proxy: {
+      '/api/teacher': {
+        target: process.env.TEACHER_SERVER_URL ?? 'http://localhost:8787',
+        changeOrigin: true,
+      },
+    },
   },
 })

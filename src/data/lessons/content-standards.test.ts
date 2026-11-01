@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { findArabicUnits } from '@/lib/content-standards'
+import { checkBlockOrigins, findArabicUnits } from '@/lib/content-standards'
 import { hasMath, renderTex, splitMath } from '@/lib/tex'
 import type { ContentBlock, LessonContent } from '@/types/content'
 import { ALL_ENTRIES } from '@/data/curriculum'
@@ -220,5 +220,24 @@ describe('lesson content: no unmarked slash division in prose', () => {
       }
     }
     expect(failures).toEqual([])
+  })
+})
+
+describe('lesson content: textbook content vs educational enrichment', () => {
+  it('gives every textbook-origin block a verified page number', () => {
+    const failures: string[] = []
+    for (const lesson of LESSONS) {
+      for (const v of checkBlockOrigins(lesson)) {
+        failures.push(`${lesson.entryId} ${v.block}: ${v.problem}`)
+      }
+    }
+    expect(failures, `انتهاكات فصل محتوى الكتاب عن الإثراء:\\n${failures.join('\\n')}`).toEqual([])
+  })
+
+  it('never lets a demonstration lesson claim textbook origin', () => {
+    for (const lesson of LESSONS.filter((l) => l.source === 'demo-supplementary')) {
+      const violations = checkBlockOrigins(lesson).filter((v) => v.problem.includes('توضيحي'))
+      expect(violations, `${lesson.entryId} يدّعي نسبه إلى الكتاب`).toEqual([])
+    }
   })
 })

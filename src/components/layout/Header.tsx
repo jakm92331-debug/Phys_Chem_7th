@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { BookOpen, FlaskConical, Home, LayoutDashboard, Menu, X } from 'lucide-react'
+import { BookOpen, FlaskConical, FileQuestion, GraduationCap, Home, LayoutDashboard, Menu, X } from 'lucide-react'
 import { LogoMark } from '@/components/icons'
 import { XpPill } from '@/components/ui/ui'
 import { levelForXp, useProgress } from '@/state/progress'
@@ -10,7 +10,9 @@ const NAV = [
   { to: '/', label: 'الرئيسية', icon: Home, end: true },
   { to: '/curriculum', label: 'المنهج الدراسي', icon: BookOpen, end: false },
   { to: '/lab', label: 'المختبر التفاعلي', icon: FlaskConical, end: false },
+  { to: '/exams', label: 'الاختبارات', icon: FileQuestion, end: false },
   { to: '/dashboard', label: 'لوحة تعلّمي', icon: LayoutDashboard, end: false },
+  { to: '/teacher', label: 'منطقة المعلّم', icon: GraduationCap, end: false },
 ]
 
 export function Header() {
