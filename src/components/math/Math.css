@@ -63,9 +63,8 @@
 /* ——— Measurements (value + English unit symbol) ——— */
 
 .measure {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.25em;
+  display: inline-block;
+  direction: ltr;
   /* Keep «12 m/s» on one line: a broken measurement is a wrong measurement. */
   white-space: nowrap;
   unicode-bidi: isolate;

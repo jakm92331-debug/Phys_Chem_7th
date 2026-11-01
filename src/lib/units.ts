@@ -82,7 +82,7 @@ export function formatNumber(value: number, digits = 1): string {
  * Formats a value *with* its English unit symbol for plain-text contexts
  * (canvas labels, aria-labels, plain strings): `formatQuantity(5, 'm/s')` →
  * `5 m/s`. Inside React trees prefer `<Measure value unit />`, which keeps the
- * numeral and the unit symbol in separate, direction-isolated spans.
+ * numeral and unit together in a direction-isolated KaTeX box.
  */
 export function formatQuantity(
   value: number,
@@ -91,4 +91,23 @@ export function formatQuantity(
 ): string {
   const symbol = (isUnitSymbol(unitSymbol) ? unitSymbol : UNITS[unitSymbol as UnitKey]) as string
   return symbol ? `${formatNumber(value, digits)} ${symbol}` : formatNumber(value, digits)
+}
+
+/** Recognise legacy plain quantities in prose without touching units in LaTeX. */
+export type QuantityPart = { type: 'text'; value: string } | { type: 'quantity'; value: string; symbol: UnitSymbol }
+
+export function splitQuantities(text: string): QuantityPart[] {
+  const symbols = [...Object.values(UNITS)].sort((a, b) => b.length - a.length)
+    .map((symbol) => symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  const pattern = new RegExp(`(?<![A-Za-z\\p{N}.])([+-]?(?:\\d+(?:\\.\\d+)?))\\s+(${symbols.join('|')})(?![\\p{L}\\p{N}/²³])`, 'gu')
+  const parts: QuantityPart[] = []
+  let cursor = 0
+  for (const match of text.matchAll(pattern)) {
+    const index = match.index
+    if (index > cursor) parts.push({ type: 'text', value: text.slice(cursor, index) })
+    parts.push({ type: 'quantity', value: match[1], symbol: match[2] as UnitSymbol })
+    cursor = index + match[0].length
+  }
+  if (cursor < text.length) parts.push({ type: 'text', value: text.slice(cursor) })
+  return parts
 }

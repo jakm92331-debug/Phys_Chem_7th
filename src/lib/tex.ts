@@ -47,7 +47,7 @@ const KATEX_OPTIONS = {
 export function renderTex(tex: string, displayMode = false): TexResult {
   try {
     return {
-      html: katex.renderToString(tex, { ...KATEX_OPTIONS, displayMode }),
+      html: katex.renderToString(displayMode ? tex : `\\displaystyle ${tex}`, { ...KATEX_OPTIONS, displayMode }),
     }
   } catch (error) {
     return {

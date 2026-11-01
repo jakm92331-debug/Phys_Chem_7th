@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { BlockMath, Measure, RichText, Tex } from './Math'
 import { findArabicUnits } from '@/lib/content-standards'
 
@@ -73,10 +73,10 @@ describe('<RichText> — Arabic prose with maths', () => {
 describe('<Measure> — value + English unit symbol', () => {
   it('renders the number and its English symbol in one isolated box', () => {
     const { container } = render(<Measure value={12} unit="metresPerSecond" digits={0} />)
-    expect(screen.getByText('12')).toBeInTheDocument()
-    expect(screen.getByText('m/s')).toBeInTheDocument()
-    const unit = container.querySelector('.measure__unit')!
-    expect(unit.getAttribute('dir')).toBe('ltr')
+    const quantity = container.querySelector('.measure')!
+    expect(quantity).toHaveAttribute('dir', 'ltr')
+    expect(quantity).toHaveAccessibleName('12 m/s')
+    expect(quantity.querySelector('.katex-html')?.textContent).toBe('12\u00a0m/s')
   })
 
   it('supports every standard symbol of the platform', () => {
@@ -94,16 +94,48 @@ describe('<Measure> — value + English unit symbol', () => {
       ['kilometresPerHour', 'km/h'],
     ]
     for (const [unit, symbol] of cases) {
-      const { unmount } = render(<Measure value={3} unit={unit} />)
-      expect(screen.getByText(symbol)).toBeInTheDocument()
+      const { unmount, container } = render(<Measure value={3} unit={unit} />)
+      expect(container.querySelector('.measure')).toHaveAccessibleName(`3 ${symbol}`)
+      expect(container.querySelector('.katex-html')?.textContent).toBe(`3\u00a0${symbol}`)
       unmount()
     }
   })
 
   it('formats decimals and never prints an Arabic unit', () => {
     const { container } = render(<Measure value={7.25} unit="metre" digits={2} />)
-    expect(screen.getByText('7.25')).toBeInTheDocument()
-    expect(screen.getByText('m')).toBeInTheDocument()
+    expect(container.querySelector('.measure')).toHaveAccessibleName('7.25 m')
+    expect(container.querySelector('.katex-html')?.textContent).toBe('7.25\u00a0m')
     expect(findArabicUnits(container.textContent ?? '')).toEqual([])
+  })
+})
+
+describe('math and quantity regressions in RTL prose', () => {
+  it('isolates plain quantities in Arabic, including compound units and decimals', () => {
+    const { container } = render(<RichText as="p" text="قطع الجسم مسافة 20 m في زمن 5 s، السرعة المتوسطة 5 m/s ثم 10.2 s و81.4 m و8 m/s و25 °C." />)
+    const p = container.querySelector('p')!
+    expect(p.closest('html')).toHaveAttribute('dir', 'rtl')
+    const boxes = [...p.querySelectorAll('.measure')]
+    expect(boxes.map(box => box.getAttribute('aria-label'))).toEqual(['20 m', '5 s', '5 m/s', '10.2 s', '81.4 m', '8 m/s', '25 °C'])
+    for (const box of boxes) {
+      expect(box).toHaveAttribute('dir', 'ltr')
+      expect(box.querySelector('.katex')).not.toBeNull()
+    }
+    expect(p.textContent).toContain('قطع الجسم مسافة')
+    expect(p.textContent).toContain('السرعة المتوسطة')
+  })
+
+  it('keeps a substituted fraction and a compound fraction as MathML fractions', () => {
+    const { container } = render(<><BlockMath tex={'v=\\frac{20\\ \\mathrm{m}}{5\\ \\mathrm{s}}=4\\ \\mathrm{m/s}'} /><Tex tex={'\\frac{a+b}{c+d}'} /></>)
+    const boxes = [...container.querySelectorAll('.math')]
+    expect(boxes).toHaveLength(2)
+    for (const box of boxes) {
+      expect(box).toHaveAttribute('dir', 'ltr')
+      expect(box.querySelector('mfrac')?.children).toHaveLength(2)
+      expect(box.querySelector('.katex-html .frac-line')).not.toBeNull()
+    }
+    expect(boxes[0].querySelector('mfrac')?.children[0].textContent).toContain('20')
+    expect(boxes[0].querySelector('mfrac')?.children[1].textContent).toContain('5')
+    expect(boxes[1].querySelector('mfrac')?.children[0].textContent).toBe('a+b')
+    expect(boxes[1].querySelector('mfrac')?.children[1].textContent).toBe('c+d')
   })
 })

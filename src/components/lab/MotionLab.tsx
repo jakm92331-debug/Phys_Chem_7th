@@ -570,8 +570,8 @@ export function MotionLab({
     ctx.textAlign = 'right'
     ctx.font = '700 10px "Readex Pro", sans-serif'
     // Axis names stay Arabic; the variable and its unit symbol are English.
-    ctx.fillText('المسافة من البداية  d (m)', padL + 132, padT + 4)
-    ctx.fillText('الزمن  t (s)', W - padR, H - 8)
+    ctx.fillText('المسافة من البداية  \u2066d (m)\u2069', padL + 132, padT + 4)
+    ctx.fillText('الزمن  \u2066t (s)\u2069', W - padR, padT + 4)
   }, [])
 
   /* ------------------------------------------------ lifecycle */
@@ -817,8 +817,7 @@ export function MotionLab({
             {running ? 'إيقاف مؤقت' : 'تشغيل'}
           </ActionButton>
           <ActionButton variant="secondary" onClick={stepOnce}>
-            <StepForward size={18} aria-hidden="true" /> خطوة +1{' '}
-            <span className="unit">s</span>
+            <StepForward size={18} aria-hidden="true" /> خطوة <Measure value={1} unit="second" />
           </ActionButton>
           <ActionButton variant="ghost" onClick={reset}>
             <RotateCcw size={18} aria-hidden="true" /> إعادة

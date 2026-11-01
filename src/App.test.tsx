@@ -89,7 +89,7 @@ describe('CheckSet (افهم وتحقق) interaction', () => {
 
     // answer every question correctly
     for (const q of questions) {
-      await user.click(screen.getByText(q.choices[q.correctIndex]))
+      await user.click(screen.getByRole('radio', { name: q.choices[q.correctIndex] }))
     }
     expect(screen.getAllByText(/إجابة صحيحة!/)).toHaveLength(questions.length)
     expect(onAllSolved).toHaveBeenCalledTimes(1)
@@ -109,7 +109,7 @@ describe('QuizSet (اختبر نفسك) interaction', () => {
     // answer Q1 wrongly, the rest correctly → 5/6
     for (const [i, q] of questions.entries()) {
       const pick = i === 0 ? (q.correctIndex + 1) % q.choices.length : q.correctIndex
-      await user.click(screen.getByText(q.choices[pick]))
+      await user.click(screen.getByRole('radio', { name: q.choices[pick] }))
     }
 
     await user.click(screen.getByRole('button', { name: /أرسل الإجابات/ }))

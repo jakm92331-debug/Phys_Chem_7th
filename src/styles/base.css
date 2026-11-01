@@ -75,6 +75,7 @@ canvas {
 }
 
 .num {
+  direction: ltr;
   font-variant-numeric: tabular-nums;
   unicode-bidi: isolate;
 }
