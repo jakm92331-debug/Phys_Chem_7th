@@ -259,3 +259,22 @@
     flex-direction: column;
   }
 }
+
+/* ——— Textbook provenance tag ——— */
+.cb-origin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-inline-start: var(--sp-3);
+  margin-block-start: var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  padding: 0.15rem 0.65rem;
+}
+.cb-text .cb-origin {
+  display: block;
+}

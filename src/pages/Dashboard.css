@@ -308,6 +308,9 @@
 .activity-dot--quiz {
   background: #7c3aed;
 }
+.activity-dot--exam {
+  background: var(--brand-3);
+}
 .activity-dot--lab {
   background: var(--brand-2);
 }

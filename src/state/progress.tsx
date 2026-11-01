@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react'
 import { BADGES } from '@/data/badges'
-import type { LessonStageId } from '@/types/content'
+import type { ExamProgress, LessonStageId } from '@/types/content'
 
 /* ------------------------------------------------------------------ */
 /* State shape                                                         */
@@ -29,13 +29,15 @@ export interface ActivityEvent {
   id: string
   at: string
   label: string
-  kind: 'stage' | 'quiz' | 'lab' | 'lesson' | 'badge'
+  kind: 'stage' | 'quiz' | 'exam' | 'lab' | 'lesson' | 'badge'
 }
 
 export interface ProgressState {
   version: 1
   xp: number
   lessons: Record<string, LessonProgress>
+  /** Per-exam student records (attempts, best score, last score). */
+  exams: Record<string, ExamProgress>
   badges: string[]
   /** Badge ids earned since the last dismissal (drives the toast). */
   newBadges: string[]
@@ -55,10 +57,18 @@ export const EMPTY_LESSON: LessonProgress = {
   lastVisitedAt: null,
 }
 
+export const EMPTY_EXAM: ExamProgress = {
+  attempts: 0,
+  bestScore: 0,
+  lastScore: 0,
+  lastAt: '',
+}
+
 export const INITIAL_STATE: ProgressState = {
   version: 1,
   xp: 0,
   lessons: {},
+  exams: {},
   badges: [],
   newBadges: [],
   labMissions: [],
@@ -133,6 +143,7 @@ export function evaluateBadges(state: ProgressState): string[] {
 type Action =
   | { type: 'MARK_STAGE'; entryId: string; stageId: LessonStageId; requiredStages: LessonStageId[]; entryTitle: string }
   | { type: 'RECORD_QUIZ'; entryId: string; score: number; entryTitle: string }
+  | { type: 'RECORD_EXAM'; examId: string; entryId: string; title: string; score: number }
   | { type: 'COMPLETE_MISSION'; missionId: string; entryId: string; xp: number; missionTitle: string }
   | { type: 'VISIT_LESSON'; entryId: string }
   | { type: 'DISMISS_BADGES' }
@@ -290,6 +301,36 @@ export function progressReducer(state: ProgressState, action: Action): ProgressS
       return finalize(next)
     }
 
+    case 'RECORD_EXAM': {
+      // The exam belongs to a lesson entry, but its attempt record is kept
+      // per exam id (an exam could later be shared/reused per unit rules).
+      const prev = state.exams[action.examId] ?? EMPTY_EXAM
+      const best = Math.max(prev.bestScore, action.score)
+      let next: ProgressState = {
+        ...state,
+        exams: {
+          ...state.exams,
+          [action.examId]: {
+            attempts: prev.attempts + 1,
+            bestScore: best,
+            lastScore: action.score,
+            lastAt: new Date().toISOString(),
+          },
+        },
+        activity: pushActivity(state, {
+          label: `نتيجة اختبار «${action.title}»: ${Math.round(action.score * 100)}٪`,
+          kind: 'exam',
+        }),
+      }
+      if (action.score >= 0.6) {
+        next = awardXp(next, action.entryId, `exam-pass:${action.examId}`, XP.quizPass).state
+      }
+      if (action.score >= 1) {
+        next = awardXp(next, action.entryId, `exam-perfect:${action.examId}`, XP.quizPerfectBonus).state
+      }
+      return finalize(next)
+    }
+
     case 'COMPLETE_MISSION': {
       if (state.labMissions.includes(action.missionId)) return state
       let next: ProgressState = {
@@ -341,6 +382,7 @@ export function saveProgress(storage: Storage | undefined, state: ProgressState)
 interface ProgressApi {
   state: ProgressState
   getLesson: (entryId: string) => LessonProgress
+  getExam: (examId: string) => ExamProgress
   markStageDone: (
     entryId: string,
     stageId: LessonStageId,
@@ -348,6 +390,7 @@ interface ProgressApi {
     entryTitle: string,
   ) => void
   recordQuiz: (entryId: string, score01: number, entryTitle: string) => void
+  recordExam: (examId: string, entryId: string, title: string, score01: number) => void
   completeMission: (missionId: string, entryId: string, xp: number, missionTitle: string) => void
   visitLesson: (entryId: string) => void
   dismissNewBadges: () => void
@@ -372,10 +415,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     return {
       state,
       getLesson: (entryId) => state.lessons[entryId] ?? EMPTY_LESSON,
+      getExam: (examId) => state.exams[examId] ?? EMPTY_EXAM,
       markStageDone: (entryId, stageId, requiredStages, entryTitle) =>
         dispatch({ type: 'MARK_STAGE', entryId, stageId, requiredStages, entryTitle }),
       recordQuiz: (entryId, score, entryTitle) =>
         dispatch({ type: 'RECORD_QUIZ', entryId, score, entryTitle }),
+      recordExam: (examId, entryId, title, score) =>
+        dispatch({ type: 'RECORD_EXAM', examId, entryId, title, score }),
       completeMission: (missionId, entryId, xp, missionTitle) =>
         dispatch({ type: 'COMPLETE_MISSION', missionId, entryId, xp, missionTitle }),
       visitLesson: (entryId) => dispatch({ type: 'VISIT_LESSON', entryId }),

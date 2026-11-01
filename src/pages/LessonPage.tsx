@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
+  BookOpenText,
   ChevronLeft,
   Clock,
   FileText,
@@ -235,6 +236,16 @@ export function LessonPage() {
               <p className="demo-banner" role="note">
                 <strong>نسخة توضيحية تجريبية:</strong> شروح وأنشطة هذا الدرس موادّ إضافية سليمة
                 علمياً أُعدّت لعرض إمكانات المنصّة، ولم تُطابَق بعدُ حرفياً مع الكتاب المدرسي.
+              </p>
+            )}
+            {content.source === 'textbook-verified' && (
+              <p className="origin-legend" role="note">
+                <BookOpenText size={19} aria-hidden="true" />
+                <span>
+                  المحتوى الموسوم <strong>«من الكتاب»</strong> هو منقول من صفحات الكتاب المذكورة
+                  في الوسم، والمحتوى غير الموسوم هو <strong>إثراء تعليمي</strong> من المنصة (شرح
+                  وأمثلة وتطبيقات) ولا يُنسب إلى الكتاب.
+                </span>
               </p>
             )}
             <LessonShell entry={entry} unit={unit} content={content} />

@@ -120,6 +120,20 @@
   font-weight: 600;
 }
 
+.origin-legend {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  background: var(--info-soft);
+  border: 1px solid rgb(91 95 239 / 0.35);
+  color: var(--text-body);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4) var(--sp-5);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  margin-block-end: var(--sp-6);
+}
+
 /* ——— Pending lesson ——— */
 .pending-lesson {
   background: var(--surface);

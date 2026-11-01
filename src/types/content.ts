@@ -97,13 +97,23 @@ export interface StageMeta {
 
 export type ContentBlock =
   | { kind: 'heading'; text: string }
-  | { kind: 'text'; text: string }
-  | { kind: 'definition'; term: string; text: string }
+  | {
+      kind: 'text'
+      text: string
+      origin?: BlockOrigin
+    }
+  | {
+      kind: 'definition'
+      term: string
+      text: string
+      origin?: BlockOrigin
+    }
   | {
       kind: 'callout'
       variant: 'idea' | 'question' | 'example' | 'warning'
       title?: string
       text: string
+      origin?: BlockOrigin
     }
   | {
       kind: 'formula'
@@ -118,14 +128,47 @@ export type ContentBlock =
       /** Symbol legend: `symbol` is LaTeX, `unit` is an English SI symbol. */
       symbols?: { symbol: string; meaning: string; unit?: string }[]
     }
-  | { kind: 'list'; items: string[]; ordered?: boolean }
+  | {
+      kind: 'list'
+      items: string[]
+      ordered?: boolean
+      origin?: BlockOrigin
+    }
   | {
       kind: 'compare'
       leftTitle: string
       rightTitle: string
       rows: { label: string; left: string; right: string }[]
+      origin?: BlockOrigin
     }
-  | { kind: 'steps'; steps: { title: string; text: string }[] }
+  | {
+      kind: 'steps'
+      steps: { title: string; text: string }[]
+      origin?: BlockOrigin
+    }
+
+/**
+ * Provenance of a content block — the permanent separation between what the
+ * platform *quotes from the textbook* and what the platform *adds as
+ * educational enrichment*:
+ *
+ *   - `{ kind: 'textbook', page }` — text carried over from the textbook
+ *     pages. `page` is REQUIRED (the book page the quote came from). These
+ *     blocks render with an explicit «من الكتاب · صفحة N» tag.
+ *   - `{ kind: 'enrichment' }` — explanations, examples, applications and
+ *     simplifications written by the platform to help understanding. They
+ *     must never be attributed to the book. Blocks without an `origin`
+ *     field are treated as enrichment (the demo lessons are enrichment).
+ *
+ * The origin is machine-checked (see `src/lib/content-standards.ts` and the
+ * guard test): a `textbook` origin without a page is a violation, and a
+ * lesson whose editorial status is `demo-supplementary` may not claim any
+ * textbook origin — because its content has not been verified against the
+ * book.
+ */
+export type BlockOrigin =
+  | { kind: 'textbook'; page: number }
+  | { kind: 'enrichment' }
 
 /**
  * A quiz item. `prompt`, `choices`, `explanation` and `misconception` are
@@ -203,4 +246,130 @@ export interface Badge {
   icon: 'rocket' | 'flask' | 'target' | 'compass' | 'award' | 'flame' | 'atom' | 'wave'
   /** Human-readable earning condition shown to the student. */
   condition: string
+}
+
+/* ------------------------------------------------------------------ */
+/* Exams («الاختبارات»)                                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Question types supported by the exam system. The first three are
+ * auto-graded; the three open-response categories (`understanding`,
+ * `application`, `inference`) are NOT auto-graded: the platform stores a
+ * model answer and a rubric, reveals them after submission for review, and
+ * reports them separately from the auto-graded score.
+ */
+export type ExamQuestionType =
+  | { kind: 'mcq' }
+  | { kind: 'true-false' }
+  | { kind: 'calculation' }
+  | { kind: 'open'; category: 'understanding' | 'application' | 'inference' }
+
+export interface ExamQuestion {
+  id: string
+  type: ExamQuestionType
+  /** Rendered through `<RichText>` — may contain `$…$` LaTeX. Units English-only. */
+  prompt: string
+  /** For `mcq`: the choices. */
+  choices?: string[]
+  /** For `mcq`: index of the correct choice. */
+  correctIndex?: number
+  /** For `true-false`: the correct truth value. */
+  correct?: boolean
+  /** For `calculation`: the expected numerical value. */
+  expectedValue?: number
+  /** For `calculation`: relative tolerance (default 0.01 = 1%). */
+  tolerance?: number
+  /** For `calculation`: required unit symbol (English SI, e.g. `m/s`). */
+  expectedUnit?: string
+  /** For open questions: the model answer revealed after submission. */
+  modelAnswer?: string
+  /** For open questions: what a full-credit answer must include. */
+  rubric?: string
+  /** Why the correct answer is correct — shown in the review. */
+  explanation: string
+  difficulty: 'easy' | 'medium' | 'hard'
+}
+
+/**
+ * An exam. `kind: 'lesson'` exams belong to exactly one curriculum entry
+ * (the lesson they test). `kind: 'unit'` exams test a whole unit.
+ *
+ * UNIT-EXAM RULE (permanent workflow rule): a unit exam is created ONLY
+ * when the user explicitly says the lesson just added is the LAST lesson of
+ * that unit. The system never infers the end of a unit from lesson order,
+ * numbering or any other signal, and never auto-creates unit exams. Unit
+ * exams exist solely as explicitly registered entries in the exam registry.
+ */
+export interface Exam {
+  id: string
+  /** Curriculum entry id this exam belongs to (`kind: 'lesson'` only). */
+  entryId: string
+  kind: 'lesson' | 'unit'
+  /** Unit id for `kind: 'unit'` exams. */
+  unitId?: string
+  title: string
+  /** Editorial status — same honest labelling as lessons. */
+  source: ContentStatus
+  /** `draft` exams are hidden from students until approved. */
+  status: 'draft' | 'active' | 'archived'
+  questions: ExamQuestion[]
+}
+
+/** Per-student exam record kept inside the platform progress system. */
+export interface ExamProgress {
+  attempts: number
+  /** Best score 0–1 over the auto-graded questions. */
+  bestScore: number
+  lastScore: number
+  lastAt: string
+}
+
+/* ------------------------------------------------------------------ */
+/* Teacher solutions («منطقة المعلّم»)                                 */
+/* ------------------------------------------------------------------ */
+
+export type SolutionQuestionType = 'book-question' | 'exercise' | 'problem'
+
+/**
+ * One solved question of a lesson, as prepared for the teacher area.
+ *
+ * NOTE: this data is stored server-side and served ONLY behind an
+ * authenticated teacher session (see `server/` and `docs/TEACHER_AUTH.md`).
+ * It must never be embedded in the client bundle or stored in a public
+ * file the visitor can download.
+ */
+export interface TeacherSolution {
+  id: string
+  type: SolutionQuestionType
+  /** Book page where the question appears. */
+  pageRef: number
+  /** The question, rendered through `<RichText>` (may contain `$…$`). */
+  prompt: string
+  /** The correct answer (may contain `$…$` LaTeX; units English-only). */
+  answer: string
+  /** Detailed solution steps, in order. */
+  steps: string[]
+  /** Laws and relations used, as LaTeX expressions. */
+  lawsUsed: string[]
+  /** Why this solution method was chosen (educational reasoning). */
+  methodReasoning: string
+  /** Units, substitutions and arithmetic shown step by step. */
+  substitutions: string
+}
+
+/**
+ * The full solution set of one curriculum entry, for the teacher area.
+ * Stored server-side (`server/data/teacher-solutions.json`), never in the
+ * client bundle.
+ */
+export interface TeacherSolutionSet {
+  entryId: string
+  entryTitle: string
+  /** First book page of the entry (from the verified curriculum). */
+  pageStart: number
+  /** All book pages covered by the solutions of this entry. */
+  pages: number[]
+  status: ContentStatus
+  solutions: TeacherSolution[]
 }
