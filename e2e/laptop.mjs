@@ -51,9 +51,10 @@ async function fractionCheck(selector) {
     const line = bar.getBoundingClientRect()
     return { barWidth: line.width, barHeight: line.height, barY: line.top,
       above: boxes.some(box => box.bottom <= line.bottom + 2),
-      below: boxes.some(box => box.top >= line.top - 2) }
+      below: boxes.some(box => box.top >= line.top - 2),
+      centered: boxes.every(box => Math.abs((box.left + box.right) / 2 - (line.left + line.right) / 2) < 3) }
   })
-  assert.ok(info?.barWidth > 0 && info.barHeight > 0 && info.above && info.below, `${selector}: ${JSON.stringify(info)}`)
+  assert.ok(info?.barWidth > 0 && info.barHeight > 0 && info.above && info.below && info.centered, `${selector}: ${JSON.stringify(info)}`)
 }
 
 try {
