@@ -41,6 +41,65 @@ async function quantityCheck(selector, expected) {
   assert.ok(info.right <= info.unitLeft + 1, JSON.stringify(info))
 }
 
+async function fontsReady() {
+  // Force the KaTeX faces used by the visible expressions to load before capture.
+  const loaded = await page.evaluate(async () => {
+    const faces = await Promise.all([
+      document.fonts.load('16px KaTeX_Main'),
+      document.fonts.load('italic 16px KaTeX_Math'),
+    ])
+    await document.fonts.ready
+    return faces.map(group => group.length > 0 && group.every(face => face.status === 'loaded'))
+  })
+  assert.deepEqual(loaded, [true, true], 'KaTeX fonts did not load')
+}
+
+async function arabicInlineCheck() {
+  const info = await page.locator('#long-fraction').evaluate(p => {
+    const math = p.querySelector('.math')
+    const rect = math.getBoundingClientRect()
+    const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT)
+    const textRects = []
+    let node
+    while ((node = walker.nextNode())) {
+      if (node.parentElement.closest('.math')) continue
+      for (const match of node.textContent.matchAll(/\S+/gu)) {
+        const range = document.createRange()
+        range.setStart(node, match.index)
+        range.setEnd(node, match.index + match[0].length)
+        for (const box of range.getClientRects()) textRects.push({
+          left: box.left, right: box.right, top: box.top, bottom: box.bottom,
+        })
+      }
+    }
+    const overlap = textRects.some(box =>
+      Math.min(box.right, rect.right) - Math.max(box.left, rect.left) > 0.5 &&
+      Math.min(box.bottom, rect.bottom) - Math.max(box.top, rect.top) > 0.5,
+    )
+    return {
+      paragraphDirection: getComputedStyle(p).direction,
+      mathDirection: getComputedStyle(math).direction,
+      mathBidi: getComputedStyle(math).unicodeBidi,
+      paragraphWidth: p.clientWidth, paragraphScroll: p.scrollWidth,
+      lines: new Set(textRects.map(box => Math.round(box.top))).size,
+      before: p.firstElementChild.textContent.trim().length,
+      after: p.lastElementChild.textContent.trim().length,
+      overlap,
+    }
+  })
+  assert.equal(info.paragraphDirection, 'rtl')
+  assert.equal(info.mathDirection, 'ltr')
+  assert.equal(info.mathBidi, 'isolate')
+  assert.ok(info.before > 0 && info.after > 0 && info.lines > 1, JSON.stringify(info))
+  assert.equal(info.overlap, false, JSON.stringify(info))
+  assert.ok(info.paragraphScroll <= info.paragraphWidth, JSON.stringify(info))
+  await fractionCheck('#long-fraction')
+  const operands = await page.locator('#long-fraction mfrac').evaluate(el =>
+    [...el.children].map(child => child.textContent),
+  )
+  assert.deepEqual(operands, ['d', 't'])
+}
+
 async function fractionCheck(selector) {
   const info = await page.locator(selector).first().evaluate(el => {
     const frac = el.querySelector('.katex-html .mfrac')
@@ -50,52 +109,68 @@ async function fractionCheck(selector) {
     const boxes = [...rows].filter(row => !row.querySelector('.frac-line') && row.textContent?.trim()).map(row => row.lastElementChild.getBoundingClientRect())
     const line = bar.getBoundingClientRect()
     return { barWidth: line.width, barHeight: line.height, barY: line.top,
-      above: boxes.some(box => box.bottom <= line.bottom + 2),
-      below: boxes.some(box => box.top >= line.top - 2),
+      numeratorAbove: boxes.length === 2 && boxes[1].bottom <= line.bottom + 2,
+      denominatorBelow: boxes.length === 2 && boxes[0].top >= line.top - 2,
       centered: boxes.every(box => Math.abs((box.left + box.right) / 2 - (line.left + line.right) / 2) < 3) }
   })
-  assert.ok(info?.barWidth > 0 && info.barHeight > 0 && info.above && info.below && info.centered, `${selector}: ${JSON.stringify(info)}`)
+  assert.ok(info?.barWidth > 0 && info.barHeight > 0 && info.numeratorAbove && info.denominatorBelow && info.centered, `${selector}: ${JSON.stringify(info)}`)
 }
 
 try {
-  for (const width of [1366, 1920]) {
-    await page.setViewportSize({ width, height: 768 })
+  for (const { width, height } of [{ width: 1366, height: 768 }, { width: 1920, height: 1080 }]) {
+    await page.setViewportSize({ width, height })
     for (const route of ['/', '/curriculum', '/dashboard', '/teacher', '/lab']) {
       await page.goto(`http://localhost:5173/#${route}`)
       await page.locator('main').first().waitFor()
       await noOverflow(`${route} ${width}`)
     }
     await page.goto('http://localhost:5173/e2e/fixture.html')
-    await page.evaluate(() => document.fonts.ready)
+    await fontsReady()
     assert.equal(await page.locator('#prose').evaluate(el => getComputedStyle(el).direction), 'rtl')
     for (const [i, value] of ['20 m', '5 s', '5 m/s'].entries()) await quantityCheck(`#prose .measure:nth-of-type(${i + 1})`, value)
     for (const [i, value] of ['10.2 s', '81.4 m', '8 m/s', '25 °C'].entries()) await quantityCheck(`#values .measure:nth-of-type(${i + 1})`, value)
-    for (const id of ['law', 'substitution', 'compound']) await fractionCheck(`#${id}`)
+    for (const id of ['inline-frac', 'law', 'substitution', 'compound']) await fractionCheck(`#${id}`)
+    const simple = await page.locator('#inline-simple .math').evaluate(el => ({
+      direction: getComputedStyle(el).direction,
+      bidi: getComputedStyle(el).unicodeBidi,
+      height: el.getBoundingClientRect().height,
+      lineHeight: parseFloat(getComputedStyle(el.parentElement).lineHeight),
+      annotation: el.querySelector('annotation').textContent,
+    }))
+    assert.equal(simple.direction, 'ltr')
+    assert.equal(simple.bidi, 'isolate')
+    assert.equal(simple.annotation, 'v=d+t')
+    assert.ok(simple.height <= simple.lineHeight + 2, JSON.stringify(simple))
+    await arabicInlineCheck()
     await noOverflow(`fixture ${width}`)
+    await fontsReady()
     await page.screenshot({ path: `${dir}/math-fixture-${width}.png`, fullPage: true })
+    await page.locator('#inline-standards').evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+    await fontsReady()
+    await page.screenshot({ path: `${dir}/inline-paragraph-${width}.png` })
 
     await page.goto('http://localhost:5173/#/lesson/motion-and-rest')
     await page.evaluate(() => { localStorage.clear() })
     await page.reload()
     await page.getByRole('button', { name: /اكتشف المفهوم/ }).click()
     await page.locator('.cb-formula').waitFor()
-    await page.evaluate(() => document.fonts.ready)
+    await fontsReady()
     await fractionCheck('.cb-formula')
     const example = page.locator('.cb-callout').filter({ hasText: 'مثال محلول' })
     await fractionCheck('.cb-callout:has-text("مثال محلول")')
     await noOverflow(`discover ${width}`)
     await example.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
-    await page.evaluate(() => document.fonts.ready)
+    await fontsReady()
     await page.waitForTimeout(500)
     await page.screenshot({ path: `${dir}/lesson-example-${width}.png` })
     await page.locator('.cb-formula').evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
-    await page.evaluate(() => document.fonts.ready)
+    await fontsReady()
     await page.waitForTimeout(250)
     await page.screenshot({ path: `${dir}/lesson-law-${width}.png` })
 
     await page.getByRole('button', { name: /المختبر التفاعلي/ }).click()
     await page.locator('.lab-readouts').waitFor()
-    await page.evaluate(() => document.fonts.ready)
+    await fontsReady()
     await quantityCheck('.lab-readouts .measure', '0 s')
     await noOverflow(`lab ${width}`)
     await page.getByRole('button', { name: /خطوة 1 s/ }).click()
@@ -109,7 +184,7 @@ try {
 
     await page.getByRole('button', { name: /افهم وتحقق/ }).click()
     await page.locator('.q-choice .measure').first().waitFor()
-    await page.evaluate(() => document.fonts.ready)
+    await fontsReady()
     await quantityCheck('.q-choice .measure', '72 m/s')
     await noOverflow(`questions ${width}`)
     await page.locator('.q-choice .measure').first().scrollIntoViewIfNeeded()
@@ -124,7 +199,7 @@ try {
     await noOverflow(`summary ${width}`)
     await page.locator('.stage-body').scrollIntoViewIfNeeded()
     await page.screenshot({ path: `${dir}/summary-${width}.png` })
-    console.log(`${width}px: fixture, law, substitution, example, lab, graph, questions, summary passed`)
+    console.log(`${width}×${height}: inline prose, law, substitution, example, lab, graph, questions, summary passed`)
   }
   assert.deepEqual(errors, [], 'browser page errors')
 } finally { await browser.close() }
